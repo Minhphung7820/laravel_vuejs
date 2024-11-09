@@ -56,7 +56,7 @@ export default {
         ? axios.put(`/api/products/${this.$route.params.id}`, this.product)
         : axios.post('/api/products', this.product);
 
-      request.then(() => {
+      request.then((response) => {
         this.$router.push(`/products`);
       });
     }
