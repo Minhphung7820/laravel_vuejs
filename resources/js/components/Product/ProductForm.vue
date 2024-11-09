@@ -24,9 +24,9 @@
 </template>
 
 <script>
-import axios from 'axios';
 
 export default {
+  inject: ['$axios'],
   data() {
     return {
       product: {
@@ -46,15 +46,15 @@ export default {
   },
   methods: {
     fetchProduct() {
-      axios.get(`/api/products/${this.$route.params.id}`)
+      this.$axios.get(`/api/products/${this.$route.params.id}`)
         .then(response => {
           this.product = response.data;
         });
     },
     submitForm() {
       const request = this.isEditMode
-        ? axios.put(`/api/products/${this.$route.params.id}`, this.product)
-        : axios.post('/api/products', this.product);
+        ? this.$axios.put(`/api/products/${this.$route.params.id}`, this.product)
+        : this.$axios.post('/api/products', this.product);
 
       request.then((response) => {
         this.$router.push(`/products`);

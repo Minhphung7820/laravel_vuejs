@@ -13,9 +13,9 @@
 </template>
 
 <script>
-import axios from 'axios';
 
 export default {
+  inject: ['$axios'],
   data() {
     return {
       products: []
@@ -34,7 +34,7 @@ export default {
   },
   methods: {
     fetchProducts() {
-      axios.get('/api/products')
+      this.$axios.get('/api/products')
         .then(response => {
           this.products = response.data;
         });
@@ -44,7 +44,7 @@ export default {
 
       if (confirmDelete) {
         // Nếu người dùng xác nhận, tiến hành xóa sản phẩm
-        axios.delete(`/api/products/${id}`)
+        $axios.delete(`/api/products/${id}`)
           .then(() => {
             this.fetchProducts(); // Cập nhật lại danh sách sản phẩm sau khi xóa thành công
           });
