@@ -56,9 +56,8 @@ export default {
         ? axios.put(`/api/products/${this.$route.params.id}`, this.product)
         : axios.post('/api/products', this.product);
 
-      request.then(response => {
-        const productId = this.isEditMode ? this.$route.params.id : response.data.id;
-        this.$router.push(`/products/${productId}`);
+      request.then(() => {
+        this.$router.push(`/products`);
       });
     }
   }
