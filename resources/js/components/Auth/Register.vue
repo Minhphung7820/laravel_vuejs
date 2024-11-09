@@ -47,7 +47,7 @@ export default {
         });
         this.$router.push('/login');
       } catch (error) {
-        this.errorMessage = 'Registration failed. Please try again.';
+        this.errorMessage = this.response.data.message;
       }
     },
   },
