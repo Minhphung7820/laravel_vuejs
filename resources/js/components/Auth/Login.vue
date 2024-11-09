@@ -40,7 +40,7 @@ export default {
         localStorage.setItem('token', response.data.token);
         this.$router.push('/');
       } catch (error) {
-        this.errorMessage = 'Login failed. Please check your credentials.';
+        this.errorMessage = error.response.data.message;
       }
     },
   },
