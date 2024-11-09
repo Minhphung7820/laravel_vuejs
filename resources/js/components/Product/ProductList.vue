@@ -3,9 +3,9 @@
     <h2>Product List</h2>
     <button class="create-button" @click="goToCreate">Create New Product</button>
     <ul>
-      <li v-for="product in products" :key="product.id" class="product-item">
+      <li v-for="product in formattedProducts" :key="product.id" class="product-item">
         <router-link :to="`/products/${product.id}`" class="product-link">{{ product.name }}</router-link>
-         {{ product.price }} vnđ
+        {{ product.formattedPrice }} vnđ
         <button class="delete-button" @click="deleteProduct(product.id)">Delete</button>
       </li>
     </ul>
@@ -23,6 +23,14 @@ export default {
   },
   created() {
     this.fetchProducts();
+  },
+  computed: {
+    formattedProducts() {
+      return this.products.map(product => ({
+        ...product,
+        formattedPrice: product.price.toLocaleString('en-US')
+      }));
+    }
   },
   methods: {
     fetchProducts() {

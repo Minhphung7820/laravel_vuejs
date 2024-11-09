@@ -2,7 +2,7 @@
   <div class="product-detail">
     <h2>{{ product.name }}</h2>
     <p class="description">{{ product.description }}</p>
-    <p class="price">Price: {{ product.price }} vnđ</p>
+    <p class="price">Price: {{ formattedPrice }} vnđ</p>
     <p class="quantity">Quantity: {{ product.quantity }}</p>
     <button @click="goToEdit">Edit</button>
     <button @click="goBack">Back to List</button>
@@ -20,6 +20,12 @@ export default {
   },
   created() {
     this.fetchProduct();
+  },
+  computed: {
+    // Định dạng giá sản phẩm thành chuỗi có dấu phẩy
+    formattedPrice() {
+      return this.product.price ? this.product.price.toLocaleString('en-US') : '';
+    }
   },
   methods: {
     fetchProduct() {
