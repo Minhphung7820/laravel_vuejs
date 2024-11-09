@@ -5,6 +5,8 @@
             <router-link to="/">Home</router-link>
             <router-link to="/about">About</router-link>
             <router-link to="/products">Product</router-link>
+            <router-link v-if="isAuthenticated" to="/get-profile">Get Profile</router-link>
+            <router-link v-else to="/login">Login</router-link>
         </nav>
 
         <!-- Đây là nơi Vue Router sẽ hiển thị các component theo route -->
@@ -14,7 +16,22 @@
 
 <script>
 export default {
-    name: 'App'
+    name: 'App',
+    data() {
+        return {
+            isAuthenticated: false
+        };
+    },
+    created() {
+        // Kiểm tra token khi component được khởi tạo
+        this.checkAuthentication();
+    },
+    methods: {
+        checkAuthentication() {
+            // Kiểm tra xem token có tồn tại trong localStorage không
+            this.isAuthenticated = !!localStorage.getItem('token');
+        }
+    }
 };
 </script>
 

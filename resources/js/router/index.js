@@ -7,6 +7,7 @@ import ProductDetail from '../components/Product/ProductDetail.vue';
 import NotFound from '../components/NotFound.vue';
 import Login from '../components/Auth/Login.vue';
 import Register from '../components/Auth/Register.vue';
+import Profile from '../components/Auth/Profile.vue';
 // prefix
 const prefixRouteProduct = 'products';
 //
@@ -15,6 +16,7 @@ const routes = [
   { path: '/login', component: Login },
   { path: '/register', component: Register },
   { path: '/about', component: About },
+  { path: '/get-profile', component: Profile, meta: { requiresAuth: true } },
   { path: `/${prefixRouteProduct}`, component: ProductList, meta: { requiresAuth: true } },
   { path: `/${prefixRouteProduct}/create`, component: ProductForm, meta: { requiresAuth: true } },
   { path: `/${prefixRouteProduct}/:id`, component: ProductDetail, meta: { requiresAuth: true } },

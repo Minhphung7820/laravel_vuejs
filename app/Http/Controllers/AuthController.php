@@ -60,4 +60,9 @@ class AuthController extends Controller
             'message' => 'Logged out successfully'
         ], 200);
     }
+
+    public function getProfile(Request $request)
+    {
+        return  response()->json(auth()->guard('api')->user());
+    }
 }
