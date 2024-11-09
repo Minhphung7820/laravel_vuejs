@@ -5,7 +5,7 @@
     <ul>
       <li v-for="product in products" :key="product.id" class="product-item">
         <router-link :to="`/products/${product.id}`" class="product-link">{{ product.name }}</router-link>
-        - {{ product.price }} vnđ
+         {{ product.price }} vnđ
         <button class="delete-button" @click="deleteProduct(product.id)">Delete</button>
       </li>
     </ul>
