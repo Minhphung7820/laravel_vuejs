@@ -13,7 +13,6 @@
 </template>
 
 <script>
-
 export default {
   inject: ['$axios'],
   data() {
@@ -21,8 +20,8 @@ export default {
       products: []
     };
   },
-  created() {
-    this.fetchProducts();
+  async created() {
+    await this.fetchProducts();
   },
   computed: {
     formattedProducts() {
@@ -33,21 +32,24 @@ export default {
     }
   },
   methods: {
-    fetchProducts() {
-      this.$axios.get('/api/products')
-        .then(response => {
-          this.products = response.data;
-        });
+    async fetchProducts() {
+      try {
+        const response = await this.$axios.get('/api/products');
+        this.products = response.data;
+        this.isAuthenticated = true; // Xác thực thành công, cho phép render component
+      } catch (error) {
+        console.error("Error deleting product:", error);
+      }
     },
-    deleteProduct(id) {
+    async deleteProduct(id) {
       const confirmDelete = window.confirm("Are you sure you want to delete this product?");
-
       if (confirmDelete) {
-        // Nếu người dùng xác nhận, tiến hành xóa sản phẩm
-        $axios.delete(`/api/products/${id}`)
-          .then(() => {
-            this.fetchProducts(); // Cập nhật lại danh sách sản phẩm sau khi xóa thành công
-          });
+        try {
+          await this.$axios.delete(`/api/products/${id}`);
+          this.fetchProducts(); // Cập nhật lại danh sách sản phẩm sau khi xóa thành công
+        } catch (error) {
+          console.error("Error deleting product:", error);
+        }
       }
     },
     goToCreate() {

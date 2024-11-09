@@ -24,7 +24,6 @@
 </template>
 
 <script>
-
 export default {
   inject: ['$axios'],
   data() {
@@ -38,27 +37,32 @@ export default {
       isEditMode: false
     };
   },
-  created() {
+  async created() {
     if (this.$route.params.id) {
       this.isEditMode = true;
-      this.fetchProduct();
+      await this.fetchProduct();
     }
   },
   methods: {
-    fetchProduct() {
-      this.$axios.get(`/api/products/${this.$route.params.id}`)
-        .then(response => {
-          this.product = response.data;
-        });
+    async fetchProduct() {
+      try {
+        const response = await this.$axios.get(`/api/products/${this.$route.params.id}`);
+        this.product = response.data;
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      }
     },
-    submitForm() {
-      const request = this.isEditMode
-        ? this.$axios.put(`/api/products/${this.$route.params.id}`, this.product)
-        : this.$axios.post('/api/products', this.product);
+    async submitForm() {
+      try {
+        const request = this.isEditMode
+          ? this.$axios.put(`/api/products/${this.$route.params.id}`, this.product)
+          : this.$axios.post('/api/products', this.product);
 
-      request.then((response) => {
-        this.$router.push(`/products`);
-      });
+        await request;
+        this.$router.push('/products');
+      } catch (error) {
+        console.error("Error submitting form:", error);
+      }
     }
   }
 };

@@ -10,7 +10,6 @@
 </template>
 
 <script>
-
 export default {
   inject: ['$axios'],
   data() {
@@ -18,8 +17,8 @@ export default {
       product: {}
     };
   },
-  created() {
-    this.fetchProduct();
+ async created() {
+   await this.fetchProduct();
   },
   computed: {
     // Định dạng giá sản phẩm thành chuỗi có dấu phẩy
@@ -28,11 +27,13 @@ export default {
     }
   },
   methods: {
-    fetchProduct() {
-      this.$axios.get(`/api/products/${this.$route.params.id}`)
-        .then(response => {
-          this.product = response.data;
-        });
+    async fetchProduct() {
+      try {
+        const response = await this.$axios.get(`/api/products/${this.$route.params.id}`);
+        this.product = response.data;
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      }
     },
     goToEdit() {
       this.$router.push(`/products/${this.product.id}/edit`);
