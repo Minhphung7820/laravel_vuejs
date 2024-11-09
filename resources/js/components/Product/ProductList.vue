@@ -32,10 +32,15 @@ export default {
         });
     },
     deleteProduct(id) {
-      axios.delete(`/api/products/${id}`)
-        .then(() => {
-          this.fetchProducts();
-        });
+      const confirmDelete = window.confirm("Are you sure you want to delete this product?");
+
+      if (confirmDelete) {
+        // Nếu người dùng xác nhận, tiến hành xóa sản phẩm
+        axios.delete(`/api/products/${id}`)
+          .then(() => {
+            this.fetchProducts(); // Cập nhật lại danh sách sản phẩm sau khi xóa thành công
+          });
+      }
     },
     goToCreate() {
       this.$router.push('/products/create');
