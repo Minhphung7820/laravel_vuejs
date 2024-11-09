@@ -4,6 +4,7 @@
         <nav>
             <router-link to="/">Home</router-link>
             <router-link to="/about">About</router-link>
+            <router-link to="/products">Product</router-link>
         </nav>
 
         <!-- Đây là nơi Vue Router sẽ hiển thị các component theo route -->
