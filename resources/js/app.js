@@ -11,7 +11,6 @@ const axiosInstance = axios.create({
   baseURL: baseURL,
 });
 
-
 // Thêm interceptor để đính kèm Bearer token vào mỗi request
 axiosInstance.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
