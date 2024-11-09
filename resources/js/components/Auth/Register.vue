@@ -47,7 +47,7 @@ export default {
         });
         this.$router.push('/login');
       } catch (error) {
-        this.errorMessage = this.response.data.message;
+        this.errorMessage = error.response.data.message;
       }
     },
   },
