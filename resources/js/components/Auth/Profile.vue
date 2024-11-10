@@ -1,9 +1,18 @@
 <template>
   <div class="profile-container">
     <h2>Profile</h2>
-    <p><strong>Name:</strong> {{ user.name }}</p>
-    <p><strong>Email:</strong> {{ user.email }}</p>
-    <button @click="logout" class="logout-button">Logout</button>
+
+    <!-- Hiển thị vòng xoay loading trong khi chờ API -->
+    <div v-if="isLoading" class="loading-container">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Hiển thị thông tin hồ sơ khi API hoàn tất -->
+    <div v-else>
+      <p><strong>Name:</strong> {{ user.name }}</p>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <button @click="logout" class="logout-button">Logout</button>
+    </div>
   </div>
 </template>
 
@@ -12,15 +21,19 @@ export default {
   inject: ['$axios'],
   data() {
     return {
-      user: {}
+      user: {},
+      isLoading: false // Thêm biến isLoading để kiểm tra trạng thái loading
     };
   },
   async created() {
+    this.isLoading = true; // Bật trạng thái loading khi bắt đầu tải dữ liệu
     try {
       const response = await this.$axios.get('/api/get-profile');
       this.user = response.data;
     } catch (error) {
       console.error("Failed to load profile:", error);
+    } finally {
+      this.isLoading = false; // Tắt trạng thái loading sau khi API hoàn tất
     }
   },
   methods: {
@@ -66,5 +79,28 @@ h2 {
 
 .logout-button:hover {
   background-color: #c0392b;
+}
+
+/* Loading container chỉ hiện trong khu vực hồ sơ */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Vòng xoay spinner */
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

@@ -1,7 +1,14 @@
 <template>
   <div class="product-form">
     <h2>{{ isEditMode ? 'Edit' : 'Create' }} Product</h2>
-    <form @submit.prevent="submitForm">
+
+    <!-- Hiển thị vòng xoay loading trong khi chờ API -->
+    <div v-if="isLoading" class="loading-container">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Hiển thị form khi không loading -->
+    <form v-else @submit.prevent="submitForm">
       <div class="form-group">
         <label>Name:</label>
         <input v-model="product.name" required />
@@ -34,7 +41,8 @@ export default {
         price: '',
         quantity: ''
       },
-      isEditMode: false
+      isEditMode: false,
+      isLoading: false // Thêm biến isLoading để kiểm tra trạng thái loading
     };
   },
   async created() {
@@ -45,14 +53,18 @@ export default {
   },
   methods: {
     async fetchProduct() {
+      this.isLoading = true; // Bật trạng thái loading
       try {
         const response = await this.$axios.get(`/api/products/${this.$route.params.id}`);
         this.product = response.data;
       } catch (error) {
         console.error("Error fetching product:", error);
+      } finally {
+        this.isLoading = false; // Tắt trạng thái loading sau khi API hoàn tất
       }
     },
     async submitForm() {
+      this.isLoading = true; // Bật trạng thái loading khi gửi biểu mẫu
       try {
         const request = this.isEditMode
           ? this.$axios.put(`/api/products/${this.$route.params.id}`, this.product)
@@ -62,6 +74,8 @@ export default {
         this.$router.push('/products');
       } catch (error) {
         console.error("Error submitting form:", error);
+      } finally {
+        this.isLoading = false; // Tắt trạng thái loading sau khi gửi xong
       }
     }
   }
@@ -118,5 +132,28 @@ button {
 
 button:hover {
   background-color: #218838;
+}
+
+/* Loading container chỉ hiện trong khu vực biểu mẫu */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Vòng xoay spinner */
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

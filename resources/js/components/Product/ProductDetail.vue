@@ -1,11 +1,19 @@
 <template>
   <div class="product-detail">
-    <h2>{{ product.name }}</h2>
-    <p class="description">{{ product.description }}</p>
-    <p class="price">Price: {{ formattedPrice }} vnđ</p>
-    <p class="quantity">Quantity: {{ product.quantity }}</p>
-    <button @click="goToEdit">Edit</button>
-    <button @click="goBack">Back to List</button>
+    <!-- Hiển thị vòng xoay loading trong khi chờ API -->
+    <div v-if="isLoading" class="loading-container">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Hiển thị chi tiết sản phẩm khi API hoàn tất -->
+    <div v-else>
+      <h2>{{ product.name }}</h2>
+      <p class="description">{{ product.description }}</p>
+      <p class="price">Price: {{ formattedPrice }} vnđ</p>
+      <p class="quantity">Quantity: {{ product.quantity }}</p>
+      <button @click="goToEdit">Edit</button>
+      <button @click="goBack">Back to List</button>
+    </div>
   </div>
 </template>
 
@@ -14,11 +22,12 @@ export default {
   inject: ['$axios'],
   data() {
     return {
-      product: {}
+      product: {},
+      isLoading: false // Thêm biến isLoading để kiểm tra trạng thái loading
     };
   },
- async created() {
-   await this.fetchProduct();
+  async created() {
+    await this.fetchProduct();
   },
   computed: {
     // Định dạng giá sản phẩm thành chuỗi có dấu phẩy
@@ -28,11 +37,14 @@ export default {
   },
   methods: {
     async fetchProduct() {
+      this.isLoading = true; // Bật trạng thái loading
       try {
         const response = await this.$axios.get(`/api/products/${this.$route.params.id}`);
         this.product = response.data;
       } catch (error) {
         console.error("Error fetching product:", error);
+      } finally {
+        this.isLoading = false; // Tắt trạng thái loading sau khi API hoàn tất
       }
     },
     goToEdit() {
@@ -83,5 +95,28 @@ button {
 
 button:hover {
   background-color: #2980b9;
+}
+
+/* Loading container chỉ hiện trong khu vực chi tiết sản phẩm */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Vòng xoay spinner */
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
