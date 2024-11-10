@@ -276,6 +276,9 @@ ul {
   align-items: center;
   gap: 10px;
   margin-top: 20px;
+  overflow-x: auto; /* Cho phép cuộn ngang */
+  white-space: nowrap; /* Giữ các nút trên một dòng */
+  padding: 10px; /* Thêm khoảng cách để cuộn dễ dàng */
 }
 
 .pagination button {
