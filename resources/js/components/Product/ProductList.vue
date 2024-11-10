@@ -3,8 +3,15 @@
     <h2>Product List</h2>
     <button class="create-button" @click="goToCreate">Create New Product</button>
 
-    <input type="text" v-model="keyword" placeholder="Search products..." />
-    <button @click="searchProducts">Search</button>
+    <div class="search-container">
+      <input
+        type="text"
+        v-model="keyword"
+        placeholder="Search products..."
+        @keyup.enter="searchProducts"
+      />
+      <button @click="searchProducts">Search</button>
+   </div>
 
     <div v-if="isLoading" class="loading-container">
       <div class="spinner"></div>
@@ -299,6 +306,40 @@ ul {
   cursor: default;
   background-color: transparent;
   color: #555;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-container input[type="text"] {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px 0 0 5px;
+  outline: none;
+  flex: 1;
+  font-size: 1rem;
+}
+
+.search-container input[type="text"]:focus {
+  border-color: #3498db;
+}
+
+.search-container button {
+  padding: 8px 15px;
+  background-color: #3498db;
+  color: #fff;
+  border: none;
+  border-radius: 0 5px 5px 0;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.search-container button:hover {
+  background-color: #2980b9;
 }
 
 </style>
