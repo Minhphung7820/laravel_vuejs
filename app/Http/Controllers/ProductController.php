@@ -17,7 +17,11 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        return Product::orderBy('created_at', 'desc')->paginate($request['limit'] ?? 10);
+        return Product::when(isset($request['keyword']), function ($query) use ($request) {
+            return $query->where(function ($query) use ($request) {
+                $query->where('name', 'LIKE', "%" . $request['keyword'] . "%");
+            });
+        })->orderBy('created_at', 'desc')->paginate($request['limit'] ?? 10);
     }
 
     /**

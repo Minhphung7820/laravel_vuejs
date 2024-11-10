@@ -3,6 +3,9 @@
     <h2>Product List</h2>
     <button class="create-button" @click="goToCreate">Create New Product</button>
 
+    <input type="text" v-model="keyword" placeholder="Search products..." />
+    <button @click="searchProducts">Search</button>
+
     <div v-if="isLoading" class="loading-container">
       <div class="spinner"></div>
     </div>
@@ -58,9 +61,10 @@ export default {
     return {
       products: [],
       isLoading: false,
-      currentPage: 1, // Trang hiện tại
-      limit: 10, // Số lượng sản phẩm mỗi trang
-      lastPage: 1
+      currentPage: 1,
+      limit: 10,
+      lastPage: 1,
+      keyword: '', // Biến lưu từ khóa tìm kiếm
     };
   },
   async created() {
@@ -70,9 +74,10 @@ export default {
       if (decodedParams) {
         this.currentPage = parseInt(decodedParams.page) || 1;
         this.limit = parseInt(decodedParams.limit) || 10;
+        this.keyword = decodedParams.keyword || ''; // Lấy keyword từ URL nếu có
       }
     }
-    await this.fetchProducts(this.currentPage, this.limit);
+    await this.fetchProducts(this.currentPage, this.limit, this.keyword);
   },
   watch: {
     '$route.query.query'(newQuery) {
@@ -80,16 +85,20 @@ export default {
       if (decodedParams) {
         this.currentPage = parseInt(decodedParams.page) || 1;
         this.limit = parseInt(decodedParams.limit) || 10;
-        this.fetchProducts(this.currentPage, this.limit);
+        this.keyword = decodedParams.keyword || ''; // Lấy keyword từ URL nếu có
+        this.fetchProducts(this.currentPage, this.limit, this.keyword);
       }
     }
   },
   computed: {
     formattedProducts() {
-      return this.products.map(product => ({
+      // Định dạng sản phẩm với giá thành
+      const products = this.products.map(product => ({
         ...product,
         formattedPrice: product.price.toLocaleString('en-US')
       }));
+      console.log("Danh sách sản phẩm đã định dạng:", products); // Kiểm tra danh sách sản phẩm đã định dạng
+      return products;
     },
     visiblePageNumbers() {
       const pageNumbers = [];
@@ -119,10 +128,12 @@ export default {
     }
   },
   methods: {
-    async fetchProducts(page = 1, limit = 10) {
+    async fetchProducts(page = 1, limit = 10, keyword = '') {
       this.isLoading = true;
       try {
-        const response = await this.$axios.get(`/api/products?page=${page}&limit=${limit}`);
+        // Truyền keyword vào API
+        const response = await this.$axios.get(`/api/products?page=${page}&limit=${limit}&keyword=${keyword}`);
+        console.log("Dữ liệu API trả về:", response.data); // Kiểm tra dữ liệu API
         this.products = response.data.data;
         this.currentPage = response.data.current_page;
         this.lastPage = response.data.last_page;
@@ -137,7 +148,7 @@ export default {
       if (confirmDelete) {
         try {
           await this.$axios.delete(`/api/products/${id}`);
-          this.fetchProducts(this.currentPage, this.limit);
+          this.fetchProducts(this.currentPage, this.limit, this.keyword);
         } catch (error) {
           console.error("Error deleting product:", error);
         }
@@ -148,9 +159,15 @@ export default {
     },
     goToPage(page) {
       if (page >= 1 && page <= this.lastPage) {
-        const encodedParams = encodeQueryParams({ page, limit: this.limit });
+        const encodedParams = encodeQueryParams({ page, limit: this.limit, keyword: this.keyword });
         this.$router.push({ path: this.$route.path, query: { query: encodedParams } });
       }
+    },
+    searchProducts() {
+      // Khởi động lại tìm kiếm từ trang đầu
+      this.currentPage = 1;
+      const encodedParams = encodeQueryParams({ page: this.currentPage, limit: this.limit, keyword: this.keyword });
+      this.$router.push({ path: this.$route.path, query: { query: encodedParams } });
     }
   }
 };
