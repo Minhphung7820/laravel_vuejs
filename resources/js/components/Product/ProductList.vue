@@ -50,7 +50,7 @@ export default {
       this.isLoading = true; // Bật trạng thái loading
       try {
         const response = await this.$axios.get('/api/products');
-        this.products = response.data;
+        this.products = response.data.data;
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {

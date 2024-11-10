@@ -15,9 +15,9 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Product::all();
+        return Product::orderBy('created_at', 'desc')->paginate($request['limit'] ?? 10);
     }
 
     /**
@@ -49,7 +49,7 @@ class ProductController extends Controller
         $input = array_merge($validated, $extraFields);
 
         $data =  $validated;
-        $data['avatar'] = str_replace(url("/"), "", $input['avatarUrl']);
+        $data['avatar'] = isset($input['avatarUrl']) && $input['avatarUrl'] ? str_replace(url("/"), "", $input['avatarUrl']) : '/storage/uploads/zg732RP3l2GtYbbCfnttEPL5B1x7H2ywTZHvT5SG.png';
 
         DB::beginTransaction();
 
@@ -116,7 +116,7 @@ class ProductController extends Controller
         $input = array_merge($validated, $extraFields);
 
         $data =  $validated;
-        $data['avatar'] = isset($input['avatarUrl']) && $input['avatarUrl'] ? str_replace(url("/"), "", $input['avatarUrl']) : null;
+        $data['avatar'] = isset($input['avatarUrl']) && $input['avatarUrl'] ? str_replace(url("/"), "", $input['avatarUrl']) : '/storage/uploads/zg732RP3l2GtYbbCfnttEPL5B1x7H2ywTZHvT5SG.png';
 
         DB::beginTransaction();
 
