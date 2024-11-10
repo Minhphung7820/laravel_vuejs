@@ -3,16 +3,13 @@
     <h2>Product List</h2>
     <button class="create-button" @click="goToCreate">Create New Product</button>
 
-    <!-- Hiển thị vòng xoay loading tại vị trí danh sách sản phẩm -->
     <div v-if="isLoading" class="loading-container">
       <div class="spinner"></div>
     </div>
 
-    <!-- Hiển thị danh sách sản phẩm khi API hoàn tất -->
     <ul v-else>
       <li v-for="product in formattedProducts" :key="product.id" class="product-item">
         <div class="product-info">
-          <!-- Hiển thị avatar nếu có -->
           <img v-if="product.avatar" :src="product.avatar" alt="Avatar Image" class="avatar" />
           <div class="product-details">
             <router-link :to="`/products/${product.id}`" class="product-link">{{ product.name }}</router-link>
@@ -22,6 +19,33 @@
         <button class="delete-button" @click="deleteProduct(product.id)">Delete</button>
       </li>
     </ul>
+
+    <!-- Nút phân trang -->
+    <div class="pagination">
+      <!-- Nút First -->
+      <button @click="goToPage(1)" :disabled="currentPage === 1">First</button>
+
+      <!-- Nút Previous -->
+      <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">Previous</button>
+
+      <!-- Các trang gần -->
+      <button
+        v-for="page in visiblePageNumbers"
+        :key="page"
+        @click="page !== '...' && goToPage(page)"
+        :class="{ active: page === currentPage }"
+        :disabled="page === '...'"
+      >
+        {{ page }}
+      </button>
+
+      <!-- Nút Next -->
+      <button @click="goToPage(currentPage + 1)" :disabled="currentPage === lastPage">Next</button>
+
+      <!-- Nút Last -->
+      <button @click="goToPage(lastPage)" :disabled="currentPage === lastPage">Last</button>
+    </div>
+
   </div>
 </template>
 
@@ -31,7 +55,9 @@ export default {
   data() {
     return {
       products: [],
-      isLoading: false // Thêm biến isLoading để kiểm tra trạng thái loading
+      isLoading: false,
+      currentPage: 1, // Trang hiện tại
+      lastPage: 1
     };
   },
   async created() {
@@ -43,18 +69,49 @@ export default {
         ...product,
         formattedPrice: product.price.toLocaleString('en-US')
       }));
+    },
+    visiblePageNumbers() {
+      const pageNumbers = [];
+      const range = 2; // Số lượng trang hiển thị trước và sau trang hiện tại
+      const start = Math.max(1, this.currentPage - range);
+      const end = Math.min(this.lastPage, this.currentPage + range);
+
+      // Thêm trang đầu tiên
+      if (start > 1) {
+        pageNumbers.push(1);
+        if (start > 2) {
+          pageNumbers.push('...');
+        }
+      }
+
+      // Thêm các trang gần trang hiện tại
+      for (let i = start; i <= end; i++) {
+        pageNumbers.push(i);
+      }
+
+      // Thêm trang cuối cùng
+      if (end < this.lastPage) {
+        if (end < this.lastPage - 1) {
+          pageNumbers.push('...');
+        }
+        pageNumbers.push(this.lastPage);
+      }
+
+      return pageNumbers;
     }
   },
   methods: {
-    async fetchProducts() {
-      this.isLoading = true; // Bật trạng thái loading
+    async fetchProducts(page = 1) {
+      this.isLoading = true;
       try {
-        const response = await this.$axios.get('/api/products');
+        const response = await this.$axios.get(`/api/products?page=${page}`);
         this.products = response.data.data;
+        this.currentPage = response.data.current_page; // Cập nhật trang hiện tại
+        this.lastPage = response.data.last_page;       // Cập nhật tổng số trang
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
-        this.isLoading = false; // Tắt trạng thái loading sau khi API hoàn tất
+        this.isLoading = false;
       }
     },
     async deleteProduct(id) {
@@ -62,7 +119,7 @@ export default {
       if (confirmDelete) {
         try {
           await this.$axios.delete(`/api/products/${id}`);
-          this.fetchProducts(); // Cập nhật lại danh sách sản phẩm sau khi xóa thành công
+          this.fetchProducts(this.currentPage); // Cập nhật lại danh sách trên trang hiện tại sau khi xóa
         } catch (error) {
           console.error("Error deleting product:", error);
         }
@@ -70,6 +127,11 @@ export default {
     },
     goToCreate() {
       this.$router.push('/products/create');
+    },
+    goToPage(page) {
+      if (page >= 1 && page <= this.lastPage) {
+        this.fetchProducts(page);
+      }
     }
   }
 };
@@ -164,4 +226,43 @@ ul {
 .delete-button:hover {
   background-color: #c0392b;
 }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.pagination button {
+  background-color: #3498db;
+  color: #fff;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination button.active {
+  background-color: #2980b9;
+  font-weight: bold;
+}
+
+.pagination button[disabled] {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination button.disabled {
+  cursor: default;
+  background-color: transparent;
+  color: #555;
+}
+
 </style>
