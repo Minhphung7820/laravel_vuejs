@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Http\Controllers\Controller;
+use App\Models\ProductGallery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Mavinoo\Batch\BatchFacade;
 
 class ProductController extends Controller
 {
@@ -22,24 +25,55 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'quantity' => 'required|integer',
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'name' => 'required|string',
+                'description' => 'nullable|string',
+                'price' => 'required|numeric',
+                'quantity' => 'required|integer',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $validated = $validator->validated();
+        // Lấy thêm các trường khác từ $request
+        $extraFields = $request->only(['avatarUrl', 'galleryUrls']);
+
+        // Kết hợp dữ liệu đã xác thực và các trường bổ sung
+        $input = array_merge($validated, $extraFields);
+
+        $data =  $validated;
+        $data['avatar'] = str_replace(url("/"), "", $input['avatarUrl']);
 
         DB::beginTransaction();
 
         try {
-            $product = Product::create($validated);
 
+            $product = Product::create($data);
+
+            $gallerys = [];
+            if ($product && !empty($input['galleryUrls'])) {
+                foreach ($input['galleryUrls'] as $value) {
+                    $gallerys[] = [
+                        'product_id' => $product['id'],
+                        'url' => str_replace(url("/"), "", $value['url']),
+                        'created_at' => now()
+                    ];
+                }
+                ProductGallery::insert($gallerys);
+            }
             DB::commit();
 
             return $product;
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['message' => 'Product creation failed'], 500);
+            return response()->json($e, 500);
         }
     }
 
@@ -48,7 +82,7 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        return Product::findOrFail($id);
+        return Product::with('galleries')->findOrFail($id);
     }
 
     /**
@@ -58,24 +92,84 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'quantity' => 'required|integer',
-        ]);
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'name' => 'required|string',
+                'description' => 'nullable|string',
+                'price' => 'required|numeric',
+                'quantity' => 'required|integer',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $validated = $validator->validated();
+        // Lấy thêm các trường khác từ $request
+        $extraFields = $request->only(['avatarUrl', 'galleryUrls']);
+
+        // Kết hợp dữ liệu đã xác thực và các trường bổ sung
+        $input = array_merge($validated, $extraFields);
+
+        $data =  $validated;
+        $data['avatar'] = isset($input['avatarUrl']) && $input['avatarUrl'] ? str_replace(url("/"), "", $input['avatarUrl']) : null;
 
         DB::beginTransaction();
 
         try {
-            $product->update($validated);
+            $product->update($data);
 
+            if ($product && !empty($input['galleryUrls'])) {
+                $gallerysUpdate = [];
+                $gallerysCreate = [];
+                $galleryIdsToKeep = [];
+
+                foreach ($input['galleryUrls'] as $value) {
+                    if (isset($value['id']) && $value['id']) {
+                        // Gallery cần update
+                        $gallerysUpdate[] = [
+                            'id' => $value['id'],
+                            'product_id' => $product['id'],
+                            'url' => str_replace(url("/"), "", $value['url']),
+                            'updated_at' => now()
+                        ];
+                        $galleryIdsToKeep[] = $value['id'];
+                    } else {
+                        // Gallery cần create mới
+                        $gallerysCreate[] = [
+                            'product_id' => $product['id'],
+                            'url' => str_replace(url("/"), "", $value['url']),
+                            'created_at' => now(),
+                            'updated_at' => now()
+                        ];
+                    }
+                }
+
+                // 1. Thực hiện batch update cho các gallery đã tồn tại
+                if (!empty($gallerysUpdate)) {
+                    BatchFacade::update(new ProductGallery, $gallerysUpdate, 'id');
+                }
+
+                // 2. Xóa các gallery không thuộc gallerysUpdate hoặc gallerysCreate
+                ProductGallery::where('product_id', $product['id'])
+                    ->whereNotIn('id', $galleryIdsToKeep)
+                    ->delete();
+
+                // 3. Batch insert các gallery mới
+                if (!empty($gallerysCreate)) {
+                    ProductGallery::insert($gallerysCreate);
+                }
+            }
             DB::commit();
 
             return $product;
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['message' => 'Product update failed'], 500);
+            return response()->json($e, 500);
         }
     }
 

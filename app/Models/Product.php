@@ -16,5 +16,16 @@ class Product extends Model
         'quantity',
         'created_at',
         'updated_at',
+        'avatar'
     ];
+
+    public function getAvatarAttribute($value)
+    {
+        return $value ? url($value) : null;
+    }
+
+    public function galleries()
+    {
+        return $this->hasMany(ProductGallery::class, 'product_id');
+    }
 }
