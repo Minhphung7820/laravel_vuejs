@@ -17,7 +17,7 @@
       <div class="form-group">
         <label>Description:</label>
         <!-- CKEditor field -->
-        <ckeditor :editor="editor" v-model="product.description" :config="editorConfig"></ckeditor>
+        <CustomCKEditor v-model:modelValue="product.description" />
       </div>
 
       <div class="form-group">
@@ -58,22 +58,15 @@
 </template>
 
 <script>
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import CustomCKEditor from '../CKEditorCustom.vue';
 
 export default {
+  components: {
+        CustomCKEditor
+  },
   inject: ['$axios'],
   data() {
     return {
-      editor: ClassicEditor,
-      editorConfig: {
-        toolbar: [
-          'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', 'link',
-          'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', 'insertTable', 'mediaEmbed',
-          'alignment', 'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
-          'undo', 'redo', 'highlight', 'horizontalLine', 'removeFormat', '|',
-          'alignment:left', 'alignment:center', 'alignment:right', 'alignment:justify'
-        ],
-      },
       product: {
         name: '',
         description: '',
