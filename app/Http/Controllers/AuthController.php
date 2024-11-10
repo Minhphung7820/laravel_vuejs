@@ -40,5 +40,39 @@ class AuthController extends Controller
         }
     }
 
-    // Các hàm login, logout, getProfile giữ nguyên
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+        ]);
+
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
+        $user = $request->user();
+        $token = $user->createToken('authToken')->accessToken;
+
+        return response()->json([
+            'message' => 'Login successful',
+            'token' => $token
+        ], 200);
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->token()->revoke();
+
+        return response()->json([
+            'message' => 'Logged out successfully'
+        ], 200);
+    }
+
+    public function getProfile(Request $request)
+    {
+        return  response()->json(auth()->guard('api')->user());
+    }
 }
