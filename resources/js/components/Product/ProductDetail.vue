@@ -1,18 +1,33 @@
 <template>
   <div class="product-detail">
-    <!-- Hiển thị vòng xoay loading trong khi chờ API -->
     <div v-if="isLoading" class="loading-container">
       <div class="spinner"></div>
     </div>
 
-    <!-- Hiển thị chi tiết sản phẩm khi API hoàn tất -->
     <div v-else>
       <h2>{{ product.name }}</h2>
       <p class="description">{{ product.description }}</p>
       <p class="price">Price: {{ formattedPrice }} vnđ</p>
       <p class="quantity">Quantity: {{ product.quantity }}</p>
-      <button @click="goToEdit">Edit</button>
-      <button @click="goBack">Back to List</button>
+
+      <div v-if="product.avatar" class="avatar-image">
+        <img :src="product.avatar" alt="Avatar Image" />
+      </div>
+
+      <div v-if="product.galleries && product.galleries.length > 0" class="gallery-images">
+        <h3>Gallery Images</h3>
+        <div class="gallery-grid">
+          <div v-for="(gallery, index) in product.galleries" :key="gallery.id" class="gallery-item">
+            <img :src="gallery.url" alt="Gallery Image" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Thêm lớp button-container để tạo khoảng cách -->
+      <div class="button-container">
+        <button @click="goToEdit">Edit</button>
+        <button @click="goBack">Back to List</button>
+      </div>
     </div>
   </div>
 </template>
@@ -23,28 +38,27 @@ export default {
   data() {
     return {
       product: {},
-      isLoading: false // Thêm biến isLoading để kiểm tra trạng thái loading
+      isLoading: false
     };
   },
   async created() {
     await this.fetchProduct();
   },
   computed: {
-    // Định dạng giá sản phẩm thành chuỗi có dấu phẩy
     formattedPrice() {
       return this.product.price ? this.product.price.toLocaleString('en-US') : '';
     }
   },
   methods: {
     async fetchProduct() {
-      this.isLoading = true; // Bật trạng thái loading
+      this.isLoading = true;
       try {
         const response = await this.$axios.get(`/api/products/${this.$route.params.id}`);
         this.product = response.data;
       } catch (error) {
         console.error("Error fetching product:", error);
       } finally {
-        this.isLoading = false; // Tắt trạng thái loading sau khi API hoàn tất
+        this.isLoading = false;
       }
     },
     goToEdit() {
@@ -81,6 +95,42 @@ h2 {
 .price, .quantity {
   font-size: 1.1rem;
   margin-bottom: 10px;
+}
+
+.avatar-image img {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+}
+
+.gallery-images {
+  margin-top: 20px;
+  margin-bottom: 20px; /* Tạo khoảng cách phía dưới gallery */
+}
+
+.gallery-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.gallery-item {
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.button-container {
+  margin-top: 20px; /* Tạo khoảng cách giữa gallery và các nút */
 }
 
 button {

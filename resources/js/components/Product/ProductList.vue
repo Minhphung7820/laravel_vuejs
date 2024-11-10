@@ -11,8 +11,14 @@
     <!-- Hiển thị danh sách sản phẩm khi API hoàn tất -->
     <ul v-else>
       <li v-for="product in formattedProducts" :key="product.id" class="product-item">
-        <router-link :to="`/products/${product.id}`" class="product-link">{{ product.name }}</router-link>
-        {{ product.formattedPrice }} vnđ
+        <div class="product-info">
+          <!-- Hiển thị avatar nếu có -->
+          <img v-if="product.avatar" :src="product.avatar" alt="Avatar Image" class="avatar" />
+          <div class="product-details">
+            <router-link :to="`/products/${product.id}`" class="product-link">{{ product.name }}</router-link>
+            <p>{{ product.formattedPrice }} vnđ</p>
+          </div>
+        </div>
         <button class="delete-button" @click="deleteProduct(product.id)">Delete</button>
       </li>
     </ul>
@@ -115,6 +121,25 @@ ul {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.product-info {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  margin-right: 15px;
+  border-radius: 5px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+}
+
+.product-details {
+  display: flex;
+  flex-direction: column;
 }
 
 .product-link {
