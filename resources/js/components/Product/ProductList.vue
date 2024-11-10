@@ -26,7 +26,7 @@
             <p>{{ product.formattedPrice }} vnđ</p>
           </div>
         </div>
-        <button class="delete-button" @click="deleteProduct(product.id)">Delete</button>
+        <button class="delete-button" @click="deleteProduct(product.id)"><TrashIcon  class="size-5 text-white font-bold"/></button>
       </li>
     </ul>
 
@@ -65,7 +65,8 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronDoubleLeftIcon,
-  ChevronDoubleRightIcon
+  ChevronDoubleRightIcon,
+  TrashIcon
 } from '@heroicons/vue/24/solid'
 
 export default {
@@ -73,7 +74,8 @@ export default {
     ChevronLeftIcon,
     ChevronRightIcon,
     ChevronDoubleLeftIcon,
-    ChevronDoubleRightIcon
+    ChevronDoubleRightIcon,
+    TrashIcon
   },
   inject: ['$axios'],
   data() {
