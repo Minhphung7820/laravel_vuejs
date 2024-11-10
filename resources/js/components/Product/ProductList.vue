@@ -2,7 +2,14 @@
   <div class="product-list">
     <h2>Product List</h2>
     <button class="create-button" @click="goToCreate">Create New Product</button>
-    <ul>
+
+    <!-- Hiển thị vòng xoay loading tại vị trí danh sách sản phẩm -->
+    <div v-if="isLoading" class="loading-container">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Hiển thị danh sách sản phẩm khi API hoàn tất -->
+    <ul v-else>
       <li v-for="product in formattedProducts" :key="product.id" class="product-item">
         <router-link :to="`/products/${product.id}`" class="product-link">{{ product.name }}</router-link>
         {{ product.formattedPrice }} vnđ
@@ -17,7 +24,8 @@ export default {
   inject: ['$axios'],
   data() {
     return {
-      products: []
+      products: [],
+      isLoading: false // Thêm biến isLoading để kiểm tra trạng thái loading
     };
   },
   async created() {
@@ -33,12 +41,14 @@ export default {
   },
   methods: {
     async fetchProducts() {
+      this.isLoading = true; // Bật trạng thái loading
       try {
         const response = await this.$axios.get('/api/products');
         this.products = response.data;
-        this.isAuthenticated = true; // Xác thực thành công, cho phép render component
       } catch (error) {
-        console.error("Error deleting product:", error);
+        console.error("Error fetching products:", error);
+      } finally {
+        this.isLoading = false; // Tắt trạng thái loading sau khi API hoàn tất
       }
     },
     async deleteProduct(id) {
@@ -128,5 +138,28 @@ ul {
 
 .delete-button:hover {
   background-color: #c0392b;
+}
+
+/* Loading container chỉ hiện trong khu vực danh sách sản phẩm */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Vòng xoay spinner */
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
