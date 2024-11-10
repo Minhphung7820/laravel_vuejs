@@ -61,10 +61,12 @@
 
 <script>
 import {encodeQueryParams,decodeQueryParams} from '../../utils/functions';
-import { ChevronLeftIcon } from '@heroicons/vue/24/solid'
-import { ChevronRightIcon } from '@heroicons/vue/24/solid'
-import { ChevronDoubleLeftIcon } from '@heroicons/vue/24/solid'
-import { ChevronDoubleRightIcon } from '@heroicons/vue/24/solid'
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon
+} from '@heroicons/vue/24/solid'
 
 export default {
   components : {
