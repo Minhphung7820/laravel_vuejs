@@ -21,7 +21,17 @@ class ProductController extends Controller
             return $query->where(function ($query) use ($request) {
                 $query->where('name', 'LIKE', "%" . $request['keyword'] . "%");
             });
-        })->orderBy('created_at', 'desc')->paginate($request['limit'] ?? 10);
+        })->select([
+            'id',
+            'name',
+            'price',
+            'quantity',
+            'created_at',
+            'updated_at',
+            'avatar'
+        ])
+            ->orderBy('created_at', 'desc')
+            ->paginate($request['limit'] ?? 10);
     }
 
     /**
