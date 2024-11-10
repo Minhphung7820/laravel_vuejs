@@ -33,10 +33,10 @@
     <!-- Nút phân trang -->
     <div class="pagination">
       <!-- Nút First -->
-      <button @click="goToPage(1)" :disabled="currentPage === 1">First</button>
+      <button @click="goToPage(1)" :disabled="currentPage === 1"><ChevronDoubleLeftIcon  class="size-5 text-white font-bold"/></button>
 
       <!-- Nút Previous -->
-      <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">Previous</button>
+      <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"><ChevronLeftIcon  class="size-5 text-white font-bold"/></button>
 
       <!-- Các trang gần -->
       <button
@@ -50,10 +50,10 @@
       </button>
 
       <!-- Nút Next -->
-      <button @click="goToPage(currentPage + 1)" :disabled="currentPage === lastPage">Next</button>
+      <button @click="goToPage(currentPage + 1)" :disabled="currentPage === lastPage"><ChevronRightIcon class="size-5 text-white font-bold"/></button>
 
       <!-- Nút Last -->
-      <button @click="goToPage(lastPage)" :disabled="currentPage === lastPage">Last</button>
+      <button @click="goToPage(lastPage)" :disabled="currentPage === lastPage"><ChevronDoubleRightIcon  class="size-5 text-white font-bold"/></button>
     </div>
 
   </div>
@@ -61,8 +61,18 @@
 
 <script>
 import {encodeQueryParams,decodeQueryParams} from '../../utils/functions';
+import { ChevronLeftIcon } from '@heroicons/vue/24/solid'
+import { ChevronRightIcon } from '@heroicons/vue/24/solid'
+import { ChevronDoubleLeftIcon } from '@heroicons/vue/24/solid'
+import { ChevronDoubleRightIcon } from '@heroicons/vue/24/solid'
 
 export default {
+  components : {
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    ChevronDoubleLeftIcon,
+    ChevronDoubleRightIcon
+  },
   inject: ['$axios'],
   data() {
     return {
