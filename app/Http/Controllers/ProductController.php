@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -28,7 +29,18 @@ class ProductController extends Controller
             'quantity' => 'required|integer',
         ]);
 
-        return Product::create($validated);
+        DB::beginTransaction();
+
+        try {
+            $product = Product::create($validated);
+
+            DB::commit();
+
+            return $product;
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(['message' => 'Product creation failed'], 500);
+        }
     }
 
     /**
@@ -45,6 +57,7 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         $product = Product::findOrFail($id);
+
         $validated = $request->validate([
             'name' => 'required|string',
             'description' => 'nullable|string',
@@ -52,11 +65,19 @@ class ProductController extends Controller
             'quantity' => 'required|integer',
         ]);
 
-        $product->update($validated);
+        DB::beginTransaction();
 
-        return $product;
+        try {
+            $product->update($validated);
+
+            DB::commit();
+
+            return $product;
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(['message' => 'Product update failed'], 500);
+        }
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -64,8 +85,18 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-        $product->delete();
 
-        return response()->json(['message' => 'Product deleted successfully']);
+        DB::beginTransaction();
+
+        try {
+            $product->delete();
+
+            DB::commit();
+
+            return response()->json(['message' => 'Product deleted successfully']);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(['message' => 'Product deletion failed'], 500);
+        }
     }
 }
