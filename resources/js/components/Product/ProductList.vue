@@ -50,6 +50,8 @@
 </template>
 
 <script>
+import {encodeQueryParams,decodeQueryParams} from '../../utils/functions';
+
 export default {
   inject: ['$axios'],
   data() {
@@ -57,11 +59,30 @@ export default {
       products: [],
       isLoading: false,
       currentPage: 1, // Trang hiện tại
+      limit: 10, // Số lượng sản phẩm mỗi trang
       lastPage: 1
     };
   },
   async created() {
-    await this.fetchProducts();
+    const encodedQuery = this.$route.query.query;
+    if (encodedQuery) {
+      const decodedParams = decodeQueryParams(encodedQuery);
+      if (decodedParams) {
+        this.currentPage = parseInt(decodedParams.page) || 1;
+        this.limit = parseInt(decodedParams.limit) || 10;
+      }
+    }
+    await this.fetchProducts(this.currentPage, this.limit);
+  },
+  watch: {
+    '$route.query.query'(newQuery) {
+      const decodedParams = decodeQueryParams(newQuery);
+      if (decodedParams) {
+        this.currentPage = parseInt(decodedParams.page) || 1;
+        this.limit = parseInt(decodedParams.limit) || 10;
+        this.fetchProducts(this.currentPage, this.limit);
+      }
+    }
   },
   computed: {
     formattedProducts() {
@@ -72,11 +93,10 @@ export default {
     },
     visiblePageNumbers() {
       const pageNumbers = [];
-      const range = 2; // Số lượng trang hiển thị trước và sau trang hiện tại
+      const range = 2;
       const start = Math.max(1, this.currentPage - range);
       const end = Math.min(this.lastPage, this.currentPage + range);
 
-      // Thêm trang đầu tiên
       if (start > 1) {
         pageNumbers.push(1);
         if (start > 2) {
@@ -84,12 +104,10 @@ export default {
         }
       }
 
-      // Thêm các trang gần trang hiện tại
       for (let i = start; i <= end; i++) {
         pageNumbers.push(i);
       }
 
-      // Thêm trang cuối cùng
       if (end < this.lastPage) {
         if (end < this.lastPage - 1) {
           pageNumbers.push('...');
@@ -101,13 +119,13 @@ export default {
     }
   },
   methods: {
-    async fetchProducts(page = 1) {
+    async fetchProducts(page = 1, limit = 10) {
       this.isLoading = true;
       try {
-        const response = await this.$axios.get(`/api/products?page=${page}`);
+        const response = await this.$axios.get(`/api/products?page=${page}&limit=${limit}`);
         this.products = response.data.data;
-        this.currentPage = response.data.current_page; // Cập nhật trang hiện tại
-        this.lastPage = response.data.last_page;       // Cập nhật tổng số trang
+        this.currentPage = response.data.current_page;
+        this.lastPage = response.data.last_page;
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
@@ -119,7 +137,7 @@ export default {
       if (confirmDelete) {
         try {
           await this.$axios.delete(`/api/products/${id}`);
-          this.fetchProducts(this.currentPage); // Cập nhật lại danh sách trên trang hiện tại sau khi xóa
+          this.fetchProducts(this.currentPage, this.limit);
         } catch (error) {
           console.error("Error deleting product:", error);
         }
@@ -130,7 +148,8 @@ export default {
     },
     goToPage(page) {
       if (page >= 1 && page <= this.lastPage) {
-        this.fetchProducts(page);
+        const encodedParams = encodeQueryParams({ page, limit: this.limit });
+        this.$router.push({ path: this.$route.path, query: { query: encodedParams } });
       }
     }
   }
