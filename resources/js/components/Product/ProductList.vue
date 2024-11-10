@@ -33,7 +33,7 @@
     <!-- Nút phân trang -->
     <div class="pagination">
       <!-- Nút First -->
-      <button @click="goToPage(1)" :disabled="currentPage === 1"><ChevronDoubleLeftIcon  class="size-5 text-white font-bold"/></button>
+      <!-- <button @click="goToPage(1)" :disabled="currentPage === 1"><ChevronDoubleLeftIcon  class="size-5 text-white font-bold"/></button> -->
 
       <!-- Nút Previous -->
       <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"><ChevronLeftIcon  class="size-5 text-white font-bold"/></button>
@@ -52,8 +52,8 @@
       <!-- Nút Next -->
       <button @click="goToPage(currentPage + 1)" :disabled="currentPage === lastPage"><ChevronRightIcon class="size-5 text-white font-bold"/></button>
 
-      <!-- Nút Last -->
-      <button @click="goToPage(lastPage)" :disabled="currentPage === lastPage"><ChevronDoubleRightIcon  class="size-5 text-white font-bold"/></button>
+      <!-- Nút Last
+      <button @click="goToPage(lastPage)" :disabled="currentPage === lastPage"><ChevronDoubleRightIcon  class="size-5 text-white font-bold"/></button> -->
     </div>
 
   </div>
