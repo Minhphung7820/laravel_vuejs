@@ -6,7 +6,7 @@
 
     <div v-else>
       <h2>{{ product.name }}</h2>
-      <p class="description">{{ product.description }}</p>
+      <p class="description" v-html="product.description"></p>
       <p class="price">Price: {{ formattedPrice }} vnđ</p>
       <p class="quantity">Quantity: {{ product.quantity }}</p>
 

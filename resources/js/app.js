@@ -3,6 +3,7 @@ import App from './App.vue';
 import router from './router';
 import axios from 'axios';
 import '../css/global.css';
+import { CkeditorPlugin } from '@ckeditor/ckeditor5-vue';
 
 const baseURL =
   import.meta.env.VITE_APP_BASE_URL;
@@ -40,4 +41,5 @@ axiosInstance.interceptors.response.use(
 const app = createApp(App);
 app.provide('$axios', axiosInstance);
 app.use(router);
+app.use(CkeditorPlugin);
 app.mount('#app');

@@ -13,14 +13,18 @@
         <label>Name:</label>
         <input v-model="product.name" required />
       </div>
+
       <div class="form-group">
         <label>Description:</label>
-        <textarea v-model="product.description"></textarea>
+        <!-- CKEditor field -->
+        <ckeditor :editor="editor" v-model="product.description" :config="editorConfig"></ckeditor>
       </div>
+
       <div class="form-group">
         <label>Price:</label>
         <input type="number" v-model="product.price" required />
       </div>
+
       <div class="form-group">
         <label>Quantity:</label>
         <input type="number" v-model="product.quantity" required />
@@ -54,10 +58,22 @@
 </template>
 
 <script>
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+
 export default {
   inject: ['$axios'],
   data() {
     return {
+      editor: ClassicEditor,
+      editorConfig: {
+        toolbar: [
+          'heading', '|', 'bold', 'italic', 'underline', 'strikethrough', 'link',
+          'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', 'insertTable', 'mediaEmbed',
+          'alignment', 'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+          'undo', 'redo', 'highlight', 'horizontalLine', 'removeFormat', '|',
+          'alignment:left', 'alignment:center', 'alignment:right', 'alignment:justify'
+        ],
+      },
       product: {
         name: '',
         description: '',
@@ -68,10 +84,10 @@ export default {
       isLoading: false,
       avatar: null,
       avatarPreview: null,
-      avatarUrl: '', // URL của ảnh đại diện sau khi upload
+      avatarUrl: '',
       gallery: [],
-      galleryPreviews: [], // Preview của gallery
-      galleryUrls: [] // Mảng URL của các ảnh trong gallery sau khi upload (bao gồm id khi chỉnh sửa)
+      galleryPreviews: [],
+      galleryUrls: []
     };
   },
   async created() {
@@ -86,8 +102,6 @@ export default {
       if (this.validateImage(file)) {
         this.avatar = file;
         this.avatarPreview = URL.createObjectURL(file);
-
-        // Upload ảnh đại diện và lưu link
         this.avatarUrl = await this.uploadImage(file);
       } else {
         alert("Only JPEG, PNG, JPG, GIF files under 20MB are allowed.");
@@ -99,43 +113,37 @@ export default {
       if (validFiles.length !== newFiles.length) {
         alert("Some files are not valid. Only JPEG, PNG, JPG, GIF files under 20MB are allowed.");
       }
-
       const newPreviews = validFiles.map(file => URL.createObjectURL(file));
       this.gallery.push(...validFiles);
       this.galleryPreviews.push(...newPreviews);
-
-      // Upload ảnh gallery và lưu các link kèm id nếu có
       for (const file of validFiles) {
         const url = await this.uploadImage(file);
-        this.galleryUrls.push({ url }); // Khi là file mới, không có `id`
+        this.galleryUrls.push({ url });
       }
     },
     validateImage(file) {
       const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
-      const maxSize = 20000000; // 20MB in bytes
+      const maxSize = 20000000;
       return allowedTypes.includes(file.type) && file.size <= maxSize;
     },
     removeAvatar() {
       this.avatar = null;
       this.avatarPreview = null;
-      this.avatarUrl = ''; // Xóa link ảnh đại diện
+      this.avatarUrl = '';
     },
     removeGalleryImage(index) {
       this.gallery.splice(index, 1);
       this.galleryPreviews.splice(index, 1);
-      this.galleryUrls.splice(index, 1); // Xóa link ảnh trong gallery
+      this.galleryUrls.splice(index, 1);
     },
     async uploadImage(file) {
       const formData = new FormData();
       formData.append('image', file);
-
       try {
         const response = await this.$axios.post('/api/upload-image', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
-        return response.data.url; // Giả sử API trả về link ảnh trong `url`
+        return response.data.url;
       } catch (error) {
         console.error("Error uploading image:", error);
         return '';
@@ -146,14 +154,10 @@ export default {
       try {
         const response = await this.$axios.get(`/api/products/${this.$route.params.id}`);
         this.product = response.data;
-
-        // Điền dữ liệu avatar nếu có
         if (response.data.avatar) {
           this.avatarPreview = response.data.avatar;
           this.avatarUrl = response.data.avatar;
         }
-
-        // Điền dữ liệu gallery nếu có
         if (response.data.galleries) {
           this.galleryUrls = response.data.galleries.map(gallery => ({
             id: gallery.id,
@@ -175,14 +179,12 @@ export default {
           description: this.product.description,
           price: this.product.price,
           quantity: this.product.quantity,
-          avatarUrl: this.avatarUrl, // Gửi link ảnh đại diện
-          galleryUrls: this.galleryUrls // Gửi link các ảnh trong gallery với id khi chỉnh sửa
+          avatarUrl: this.avatarUrl,
+          galleryUrls: this.galleryUrls
         };
-
         const request = this.isEditMode
           ? this.$axios.put(`/api/products/${this.$route.params.id}`, formData)
           : this.$axios.post('/api/products', formData);
-
         await request;
         this.$router.push('/products');
       } catch (error) {
@@ -193,7 +195,6 @@ export default {
     }
   }
 };
-
 </script>
 
 <style scoped>
@@ -205,23 +206,19 @@ export default {
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
-
 h2 {
   color: #333;
   margin-bottom: 20px;
   text-align: center;
 }
-
 .form-group {
   margin-bottom: 15px;
 }
-
 label {
   font-weight: bold;
   display: block;
   margin-bottom: 5px;
 }
-
 input, textarea {
   width: 100%;
   padding: 8px;
@@ -229,7 +226,9 @@ input, textarea {
   border-radius: 5px;
   box-sizing: border-box;
 }
-
+.ck-editor__editable_inline {
+  min-height: 500px; /* Tăng chiều cao CKEditor */
+}
 button {
   background-color: #28a745;
   color: #fff;
@@ -243,18 +242,14 @@ button {
   font-weight: bold;
   margin-top: 15px;
 }
-
 button:hover {
   background-color: #218838;
 }
-
-/* Preview ảnh */
 .image-preview-container {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
-
 .image-preview {
   position: relative;
   width: 100px;
@@ -263,13 +258,11 @@ button:hover {
   border-radius: 5px;
   overflow: hidden;
 }
-
 .image-preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
 .remove-button {
   position: absolute;
   top: 0;
@@ -288,7 +281,6 @@ button:hover {
   padding: 0;
   box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
 }
-
 .remove-button:hover {
   background-color: #c0392b;
 }
