@@ -274,17 +274,40 @@ ul {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
   margin-top: 20px;
-  overflow-x: auto; /* Cho phép cuộn ngang */
-  white-space: nowrap; /* Giữ các nút trên một dòng */
-  padding: 10px; /* Thêm khoảng cách để cuộn dễ dàng */
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 10px;
+  scrollbar-width: thin; /* Thanh cuộn mỏng cho Firefox */
+  scrollbar-color: #3498db #f0f0f0; /* Màu thanh cuộn cho Firefox */
+}
+
+/* Thanh cuộn cho các trình duyệt Webkit */
+.pagination::-webkit-scrollbar {
+  height: 8px; /* Độ cao của thanh cuộn ngang */
+}
+
+.pagination::-webkit-scrollbar-track {
+  background: #f0f0f0; /* Màu nền của track thanh cuộn */
+  border-radius: 10px; /* Bo tròn góc track */
+}
+
+.pagination::-webkit-scrollbar-thumb {
+  background-color: #3498db; /* Màu của thanh cuộn */
+  border-radius: 10px; /* Bo tròn góc của thanh cuộn */
+  border: 2px solid #f0f0f0; /* Tạo khoảng trống giữa thanh cuộn và track */
+}
+
+.pagination::-webkit-scrollbar-thumb:hover {
+  background-color: #2980b9; /* Màu khi rê chuột vào thanh cuộn */
 }
 
 .pagination button {
   background-color: #3498db;
   color: #fff;
-  padding: 5px 10px;
+  padding: 5px 8px; /* Giảm kích thước padding */
+  font-size: 0.9rem; /* Giảm kích thước font */
   border: none;
   border-radius: 5px;
   cursor: pointer;
