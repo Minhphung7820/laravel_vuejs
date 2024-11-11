@@ -9,8 +9,7 @@
 </head>
 
 <body>
-  <div id="app">
-  </div>
+  <div id="app"></div>
   <script>
     window.baseURL = "{{ env('APP_URL') }}";
   </script>
