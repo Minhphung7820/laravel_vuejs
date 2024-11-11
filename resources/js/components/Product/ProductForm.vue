@@ -44,6 +44,13 @@
       <div class="form-group">
         <label>Gallery Images:</label>
         <input type="file" @change="onGalleryChange" multiple accept="image/*" />
+
+        <!-- Thanh tiến độ tải lên -->
+        <div v-if="galleryUploading" class="progress-bar-container">
+          <div class="progress-bar" :style="{ width: `${uploadProgress}%` }"></div>
+          <span>{{ uploadProgress }}%</span>
+        </div>
+
         <div class="image-preview-container">
           <div v-for="(image, index) in galleryPreviews" :key="index" class="image-preview">
             <img :src="image" alt="Gallery Preview" />
@@ -83,7 +90,8 @@ export default {
       gallery: [],
       galleryPreviews: [],
       galleryUrls: [],
-      galleryUploading: false // Trạng thái tải lên của ảnh trong gallery
+      galleryUploading: false, // Trạng thái tải lên của ảnh trong gallery,
+      uploadProgress: 0 // Phần trăm tiến độ tải lên
     };
   },
   async created() {
@@ -111,18 +119,20 @@ export default {
       }
 
       this.galleryUploading = true; // Bắt đầu tải ảnh lên
+      this.uploadProgress = 0;
       const newPreviews = validFiles.map(file => URL.createObjectURL(file));
       this.gallery.push(...validFiles);
       this.galleryPreviews.push(...newPreviews);
 
-      // Sử dụng Promise.all để tải lên tất cả ảnh
-      const uploadPromises = validFiles.map(file => this.uploadImage(file));
-      const uploadedUrls = await Promise.all(uploadPromises);
+      const totalFiles = validFiles.length;
+      let uploadedCount = 0;
 
-      // Lưu các URL đã tải lên vào galleryUrls
-      uploadedUrls.forEach(url => {
+      for (const file of validFiles) {
+        const url = await this.uploadImage(file);
         this.galleryUrls.push({ url });
-      });
+        uploadedCount += 1;
+        this.uploadProgress = Math.round((uploadedCount / totalFiles) * 100); // Cập nhật tiến độ
+      }
 
       this.galleryUploading = false; // Hoàn tất tải ảnh
     },
@@ -146,7 +156,11 @@ export default {
       formData.append('image', file);
       try {
         const response = await this.$axios.post('/api/upload-image', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: progressEvent => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            this.uploadProgress = percentCompleted; // Cập nhật tiến độ cho từng ảnh
+          }
         });
         return response.data.url;
       } catch (error) {
@@ -289,4 +303,30 @@ button:hover {
 .remove-button:hover {
   background-color: #c0392b;
 }
+
+.progress-bar-container {
+  position: relative;
+  height: 20px;
+  background-color: #f3f3f3;
+  border-radius: 5px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #4caf50;
+  width: 0;
+  transition: width 0.4s ease;
+}
+
+.progress-bar-container span {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #333;
+}
+
 </style>
