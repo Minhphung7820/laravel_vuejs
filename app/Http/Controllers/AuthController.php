@@ -76,3 +76,4 @@ class AuthController extends Controller
         return  response()->json(auth()->guard('api')->user());
     }
 }
+/////
