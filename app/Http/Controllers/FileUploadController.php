@@ -22,7 +22,7 @@ class FileUploadController extends Controller
         $request->file('image')->move(public_path('uploads/images'), $fileName);
 
         // Tạo URL cho file đã lưu
-        $url = asset('uploads/' . $fileName);
+        $url = asset('uploads/images' . $fileName);
 
         // Trả về đường dẫn của file đã upload
         return response()->json([
