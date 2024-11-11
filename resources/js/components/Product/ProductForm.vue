@@ -131,6 +131,7 @@ export default {
       const newFiles = Array.from(event.target.files);
       const validFiles = newFiles.filter(file => this.validateImage(file));
 
+      // Kiểm tra giới hạn tối đa 9 ảnh
       const totalSelectedFiles = this.gallery.length + validFiles.length;
       if (totalSelectedFiles > 9) {
         alert("You can upload a maximum of 9 images in the gallery.");
@@ -139,7 +140,7 @@ export default {
 
       if (validFiles.length !== newFiles.length) {
         alert("Some files are not valid. Only JPEG, PNG, JPG, GIF files under 20MB are allowed.");
-          return;
+        return;
       }
 
       this.galleryUploading = true; // Bắt đầu tải ảnh lên
@@ -151,11 +152,34 @@ export default {
       const totalFiles = validFiles.length;
       let uploadedCount = 0;
 
+      // Tải lên từng ảnh một cách tuần tự với retry
       for (const file of validFiles) {
-        const url = await this.uploadImage(file);
-        this.galleryUrls.push({ url });
-        uploadedCount += 1;
-        this.uploadProgress = Math.round((uploadedCount / totalFiles) * 100); // Cập nhật tiến độ
+        let success = false;
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        while (!success && retryCount < maxRetries) {
+          try {
+            const url = await this.uploadImage(file);
+            if (url) {
+              this.galleryUrls.push({ url });
+              success = true;
+            } else {
+              throw new Error("Upload returned an empty URL");
+            }
+          } catch (error) {
+            retryCount += 1;
+            console.error(`Error uploading image, retrying (${retryCount}/${maxRetries}):`, error);
+            if (retryCount === maxRetries) {
+              alert("Failed to upload image after multiple attempts. Please try again.");
+            }
+          }
+        }
+
+        if (success) {
+          uploadedCount += 1;
+          this.uploadProgress = Math.round((uploadedCount / totalFiles) * 100); // Cập nhật tiến độ
+        }
       }
 
       this.galleryUploading = false; // Hoàn tất tải ảnh
@@ -183,13 +207,13 @@ export default {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: progressEvent => {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            if (onProgress) onProgress(percentCompleted); // Gọi callback để cập nhật tiến độ
+            if (onProgress) onProgress(percentCompleted);
           }
         });
         return response.data.url;
       } catch (error) {
         console.error("Error uploading image:", error);
-        return '';
+        return null;
       }
     },
     async fetchProduct() {
