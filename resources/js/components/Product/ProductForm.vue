@@ -64,7 +64,7 @@
         </div>
       </div>
 
-      <button type="submit" :disabled="isLoading || galleryUploading">
+      <button type="submit" :disabled="isLoading || galleryUploading || avatarUploading">
         {{ isEditMode ? 'Update' : 'Create' }}
       </button>
     </form>
