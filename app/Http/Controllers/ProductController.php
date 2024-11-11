@@ -63,7 +63,7 @@ class ProductController extends Controller
         $input = array_merge($validated, $extraFields);
 
         $data =  $validated;
-        $data['avatar'] = isset($input['avatarUrl']) && $input['avatarUrl'] ? str_replace(url("/"), "", $input['avatarUrl']) : '/storage/uploads/zg732RP3l2GtYbbCfnttEPL5B1x7H2ywTZHvT5SG.png';
+        $data['avatar'] = isset($input['avatarUrl']) && $input['avatarUrl'] ? str_replace(url("/"), "", $input['avatarUrl']) : '/uploads/images1731335436_default_image.png';
 
         DB::beginTransaction();
 
@@ -130,7 +130,7 @@ class ProductController extends Controller
         $input = array_merge($validated, $extraFields);
 
         $data =  $validated;
-        $data['avatar'] = isset($input['avatarUrl']) && $input['avatarUrl'] ? str_replace(url("/"), "", $input['avatarUrl']) : '/storage/uploads/zg732RP3l2GtYbbCfnttEPL5B1x7H2ywTZHvT5SG.png';
+        $data['avatar'] = isset($input['avatarUrl']) && $input['avatarUrl'] ? str_replace(url("/"), "", $input['avatarUrl']) : '/uploads/images1731335436_default_image.png';
 
         DB::beginTransaction();
 
