@@ -30,10 +30,15 @@
         <input type="number" v-model="product.quantity" required />
       </div>
 
-      <!-- Input upload ảnh đại diện -->
       <div class="form-group">
         <label>Avatar Image:</label>
         <input type="file" @change="onAvatarChange" accept="image/*" />
+        <!-- Thanh tiến độ tải lên avatar -->
+        <div v-if="avatarUploading" class="progress-bar-container">
+          <div class="progress-bar" :style="{ width: `${avatarUploadProgress}%` }"></div>
+          <span>{{ avatarUploadProgress }}%</span>
+        </div>
+
         <div v-if="avatarPreview" class="image-preview">
           <img :src="avatarPreview" alt="Avatar Preview" />
           <button type="button" @click="removeAvatar" class="remove-button">X</button>
@@ -91,7 +96,9 @@ export default {
       galleryPreviews: [],
       galleryUrls: [],
       galleryUploading: false, // Trạng thái tải lên của ảnh trong gallery,
-      uploadProgress: 0 // Phần trăm tiến độ tải lên
+      uploadProgress: 0, // Phần trăm tiến độ tải lên
+      avatarUploading: false, // Trạng thái tải lên của avatar
+      avatarUploadProgress: 0 // Phần trăm tiến độ tải lên của avatar
     };
   },
   async created() {
@@ -106,7 +113,15 @@ export default {
       if (this.validateImage(file)) {
         this.avatar = file;
         this.avatarPreview = URL.createObjectURL(file);
-        this.avatarUrl = await this.uploadImage(file);
+
+        this.avatarUploading = true;
+        this.avatarUploadProgress = 0;
+
+        this.avatarUrl = await this.uploadImage(file, progress => {
+          this.avatarUploadProgress = progress;
+        });
+
+        this.avatarUploading = false; // Hoàn tất tải ảnh đại diện
       } else {
         alert("Only JPEG, PNG, JPG, GIF files under 20MB are allowed.");
       }
@@ -151,7 +166,7 @@ export default {
       this.galleryPreviews.splice(index, 1);
       this.galleryUrls.splice(index, 1);
     },
-    async uploadImage(file) {
+    async uploadImage(file, onProgress) {
       const formData = new FormData();
       formData.append('image', file);
       try {
@@ -159,7 +174,7 @@ export default {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: progressEvent => {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            this.uploadProgress = percentCompleted; // Cập nhật tiến độ cho từng ảnh
+            if (onProgress) onProgress(percentCompleted); // Gọi callback để cập nhật tiến độ
           }
         });
         return response.data.url;
