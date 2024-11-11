@@ -19,7 +19,7 @@ class FileUploadController extends Controller
 
         // Lưu file trực tiếp vào thư mục 'public/uploads' và giữ nguyên tên gốc
         $fileName = time() . '_' . $request->file('image')->getClientOriginalName();
-        $request->file('image')->move(public_path('uploads'), $fileName);
+        $request->file('image')->move(public_path('uploads/images'), $fileName);
 
         // Tạo URL cho file đã lưu
         $url = asset('uploads/' . $fileName);
