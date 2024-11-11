@@ -14,7 +14,7 @@ class FileUploadController extends Controller
     {
         // Xác thực file upload
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:10000000' // Chỉ cho phép các file ảnh với kích thước tối đa 10MB
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:20000000' // Chỉ cho phép các file ảnh với kích thước tối đa 10MB
         ]);
 
         // Lưu file trực tiếp vào thư mục 'public/uploads' và giữ nguyên tên gốc
