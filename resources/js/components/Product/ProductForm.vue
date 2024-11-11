@@ -124,6 +124,7 @@ export default {
         this.avatarUploading = false; // Hoàn tất tải ảnh đại diện
       } else {
         alert("Only JPEG, PNG, JPG, GIF files under 20MB are allowed.");
+        return;
       }
     },
     async onGalleryChange(event) {
@@ -131,6 +132,7 @@ export default {
       const validFiles = newFiles.filter(file => this.validateImage(file));
       if (validFiles.length !== newFiles.length) {
         alert("Some files are not valid. Only JPEG, PNG, JPG, GIF files under 20MB are allowed.");
+          return;
       }
 
       this.galleryUploading = true; // Bắt đầu tải ảnh lên
