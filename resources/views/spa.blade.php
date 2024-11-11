@@ -10,8 +10,10 @@
 
 <body>
   <div id="app">
-    <!-- Vue.js sẽ hiển thị nội dung ở đây -->
   </div>
+  <script>
+    window.baseURL = "{{ env('APP_URL') }}";
+  </script>
   @vite('resources/js/app.js')
 </body>
 

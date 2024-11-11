@@ -5,10 +5,10 @@ import axios from 'axios';
 import '../css/global.css';
 import { CkeditorPlugin } from '@ckeditor/ckeditor5-vue';
 
-const baseURL =
-  import.meta.env.VITE_APP_BASE_URL;
+// Sử dụng window.baseURL đã thiết lập từ file Blade
+const baseURL = window.baseURL;
 
-// Cấu hình axios với baseURL lấy từ biến môi trường
+// Cấu hình axios với baseURL lấy từ window.baseURL
 const axiosInstance = axios.create({
   baseURL: baseURL,
 });
