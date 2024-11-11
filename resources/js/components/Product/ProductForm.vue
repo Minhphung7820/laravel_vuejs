@@ -130,6 +130,13 @@ export default {
     async onGalleryChange(event) {
       const newFiles = Array.from(event.target.files);
       const validFiles = newFiles.filter(file => this.validateImage(file));
+
+      const totalSelectedFiles = this.gallery.length + validFiles.length;
+      if (totalSelectedFiles > 9) {
+        alert("You can upload a maximum of 9 images in the gallery.");
+        return;
+      }
+
       if (validFiles.length !== newFiles.length) {
         alert("Some files are not valid. Only JPEG, PNG, JPG, GIF files under 20MB are allowed.");
           return;
