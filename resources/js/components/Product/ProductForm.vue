@@ -52,7 +52,9 @@
         </div>
       </div>
 
-      <button type="submit">{{ isEditMode ? 'Update' : 'Create' }}</button>
+      <button type="submit" :disabled="isLoading || galleryUploading">
+        {{ isEditMode ? 'Update' : 'Create' }}
+      </button>
     </form>
   </div>
 </template>
@@ -62,7 +64,7 @@ import CustomCKEditor from '../CKEditorCustom.vue';
 
 export default {
   components: {
-        CustomCKEditor
+    CustomCKEditor
   },
   inject: ['$axios'],
   data() {
@@ -80,7 +82,8 @@ export default {
       avatarUrl: '',
       gallery: [],
       galleryPreviews: [],
-      galleryUrls: []
+      galleryUrls: [],
+      galleryUploading: false // Trạng thái tải lên của ảnh trong gallery
     };
   },
   async created() {
@@ -106,13 +109,22 @@ export default {
       if (validFiles.length !== newFiles.length) {
         alert("Some files are not valid. Only JPEG, PNG, JPG, GIF files under 20MB are allowed.");
       }
+
+      this.galleryUploading = true; // Bắt đầu tải ảnh lên
       const newPreviews = validFiles.map(file => URL.createObjectURL(file));
       this.gallery.push(...validFiles);
       this.galleryPreviews.push(...newPreviews);
-      for (const file of validFiles) {
-        const url = await this.uploadImage(file);
+
+      // Sử dụng Promise.all để tải lên tất cả ảnh
+      const uploadPromises = validFiles.map(file => this.uploadImage(file));
+      const uploadedUrls = await Promise.all(uploadPromises);
+
+      // Lưu các URL đã tải lên vào galleryUrls
+      uploadedUrls.forEach(url => {
         this.galleryUrls.push({ url });
-      }
+      });
+
+      this.galleryUploading = false; // Hoàn tất tải ảnh
     },
     validateImage(file) {
       const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/gif"];

@@ -143,11 +143,11 @@ class ProductController extends Controller
         try {
             $product->update($data);
 
-            if ($product && !empty($input['galleryUrls'])) {
-                $gallerysUpdate = [];
-                $gallerysCreate = [];
-                $galleryIdsToKeep = [];
+            $gallerysUpdate = [];
+            $gallerysCreate = [];
+            $galleryIdsToKeep = [];
 
+            if ($product && !empty($input['galleryUrls'])) {
                 foreach ($input['galleryUrls'] as $value) {
                     if (isset($value['id']) && $value['id']) {
                         // Gallery cần update
@@ -168,22 +168,23 @@ class ProductController extends Controller
                         ];
                     }
                 }
-
-                // 1. Thực hiện batch update cho các gallery đã tồn tại
-                if (!empty($gallerysUpdate)) {
-                    BatchFacade::update(new ProductGallery, $gallerysUpdate, 'id');
-                }
-
-                // 2. Xóa các gallery không thuộc gallerysUpdate hoặc gallerysCreate
-                ProductGallery::where('product_id', $product['id'])
-                    ->whereNotIn('id', $galleryIdsToKeep)
-                    ->delete();
-
-                // 3. Batch insert các gallery mới
-                if (!empty($gallerysCreate)) {
-                    ProductGallery::insert($gallerysCreate);
-                }
             }
+
+            // 1. Thực hiện batch update cho các gallery đã tồn tại
+            if (!empty($gallerysUpdate)) {
+                BatchFacade::update(new ProductGallery, $gallerysUpdate, 'id');
+            }
+
+            // 2. Xóa các gallery không thuộc gallerysUpdate hoặc gallerysCreate
+            ProductGallery::where('product_id', $product['id'])
+                ->whereNotIn('id', $galleryIdsToKeep)
+                ->delete();
+
+            // 3. Batch insert các gallery mới
+            if (!empty($gallerysCreate)) {
+                ProductGallery::insert($gallerysCreate);
+            }
+
             DB::commit();
 
             return $product;
