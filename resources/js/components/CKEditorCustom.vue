@@ -4,7 +4,7 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 class MyUploadAdapter {
   constructor(loader) {
     this.loader = loader;
-    this.url = `${import.meta.env.VITE_APP_BASE_URL}/api/upload-image`; // URL API để upload ảnh
+    this.url = `https://phungtruongweb.com/api/upload-image`; // URL API để upload ảnh
   }
 
   // Phương thức này sẽ được gọi khi file bắt đầu được upload

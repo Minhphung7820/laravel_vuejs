@@ -6,7 +6,7 @@ import '../css/global.css';
 import { CkeditorPlugin } from '@ckeditor/ckeditor5-vue';
 
 const baseURL =
-  import.meta.env.VITE_APP_BASE_URL;
+  `https://phungtruongweb.com`;
 
 // Cấu hình axios với baseURL lấy từ biến môi trường
 const axiosInstance = axios.create({
