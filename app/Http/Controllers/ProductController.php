@@ -17,11 +17,12 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
+        $user_id = auth()->guard('api')->id();
         return Product::when(isset($request['keyword']), function ($query) use ($request) {
             return $query->where(function ($query) use ($request) {
                 $query->where('name', 'LIKE', "%" . $request['keyword'] . "%");
             });
-        })->select([
+        })->where('user_id', $user_id)->select([
             'id',
             'name',
             'price',
@@ -39,6 +40,7 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        $user_id = auth()->guard('api')->id();
         $validator = Validator::make(
             $request->all(),
             [
@@ -63,6 +65,7 @@ class ProductController extends Controller
         $input = array_merge($validated, $extraFields);
 
         $data =  $validated;
+        $data['user_id'] = $user_id;
         $data['avatar'] = isset($input['avatarUrl']) && $input['avatarUrl'] ? str_replace(url("/"), "", $input['avatarUrl']) : env('IMAGE_DEFAULT');
 
         DB::beginTransaction();
@@ -96,7 +99,8 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        return Product::with('galleries')->findOrFail($id);
+        $user_id = auth()->guard('api')->id();
+        return Product::with('galleries')->where('user_id', $user_id)->findOrFail($id);
     }
 
     /**
@@ -104,7 +108,8 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $product = Product::findOrFail($id);
+        $user_id = auth()->guard('api')->id();
+        $product = Product::where('id', $id)->where('user_id', $user_id)->firstOrFail();
 
         $validator = Validator::make(
             $request->all(),
@@ -130,6 +135,7 @@ class ProductController extends Controller
         $input = array_merge($validated, $extraFields);
 
         $data =  $validated;
+        $data['user_id'] = $user_id;
         $data['avatar'] = isset($input['avatarUrl']) && $input['avatarUrl'] ? str_replace(url("/"), "", $input['avatarUrl']) : env('IMAGE_DEFAULT');
 
         DB::beginTransaction();
@@ -192,7 +198,8 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        $product = Product::findOrFail($id);
+        $user_id = auth()->guard('api')->id();
+        $product = Product::where('id', $id)->where('user_id', $user_id)->firstOrFail();
 
         DB::beginTransaction();
 

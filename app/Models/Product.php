@@ -18,7 +18,8 @@ class Product extends Model
         'quantity',
         'created_at',
         'updated_at',
-        'avatar'
+        'avatar',
+        'user_id'
     ];
 
     public function getAvatarAttribute($value)
