@@ -14,19 +14,20 @@ class FileUploadController extends Controller
     {
         // Xác thực file upload
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:10000000' // Chỉ cho phép các file ảnh với kích thước tối đa 2MB
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:10000000' // Chỉ cho phép các file ảnh với kích thước tối đa 10MB
         ]);
 
-        // Lưu file vào thư mục 'uploads' trong storage/app/public
-        $path = $request->file('image')->store('uploads', 'public');
+        // Lưu file trực tiếp vào thư mục 'public/uploads' và giữ nguyên tên gốc
+        $fileName = time() . '_' . $request->file('image')->getClientOriginalName();
+        $request->file('image')->move(public_path('uploads'), $fileName);
 
         // Tạo URL cho file đã lưu
-        $url = Storage::url($path);
+        $url = asset('uploads/' . $fileName);
 
         // Trả về đường dẫn của file đã upload
         return response()->json([
             'message' => 'Image uploaded successfully',
-            'url' => asset($url) // asset() để tạo URL đầy đủ
+            'url' => $url
         ]);
     }
 }
