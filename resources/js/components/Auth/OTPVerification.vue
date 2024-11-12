@@ -3,7 +3,7 @@
     <p>Please enter the OTP sent to your email.</p>
     <form @submit.prevent="verifyOTP" class="otp-form">
       <div class="form-group">
-        <label>OTP Code:</label>
+        <label class="otp-label">OTP Code</label>
         <input type="text" v-model="otp" required />
       </div>
       <button type="submit" :disabled="isExpired" class="verify-button">
@@ -12,9 +12,7 @@
       <p v-if="countdown !== null" class="countdown">Time left: {{ formattedTime }}</p>
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
     </form>
-    <button @click="resendOTP" class="resend-button">
-      Resend OTP
-    </button>
+    <p @click="resendOTP" class="resend-link">Resend OTP</p>
   </div>
 </template>
 
@@ -144,12 +142,13 @@ p {
 
 .form-group {
   margin-bottom: 15px;
+  text-align: center; /* Center-align the label and input */
 }
 
-label {
+.otp-label {
   font-weight: bold;
-  margin-bottom: 5px;
   display: block;
+  margin-bottom: 5px;
 }
 
 input[type="text"] {
@@ -160,7 +159,7 @@ input[type="text"] {
   box-sizing: border-box;
 }
 
-.verify-button, .resend-button {
+.verify-button {
   background-color: #3498db;
   color: white;
   border: none;
@@ -173,7 +172,7 @@ input[type="text"] {
   transition: background-color 0.3s;
 }
 
-.verify-button:hover, .resend-button:hover {
+.verify-button:hover {
   background-color: #2980b9;
 }
 
@@ -189,5 +188,14 @@ input[type="text"] {
   font-size: 14px;
   text-align: center;
   margin-top: 15px;
+}
+
+.resend-link {
+  color: #27ae60; /* Dark green color */
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 15px;
+  font-weight: bold;
 }
 </style>
