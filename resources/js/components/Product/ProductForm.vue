@@ -165,7 +165,6 @@ export default {
             console.error(`Error uploading image, retrying (${retryCount}/${maxRetries}):`, error);
             if (retryCount === maxRetries) {
               alert("Failed to upload image after multiple attempts. Please try again.");
-              return;
             }
           }
         }
