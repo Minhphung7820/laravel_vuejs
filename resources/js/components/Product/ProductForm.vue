@@ -73,7 +73,7 @@
 
 <script>
 import CustomCKEditor from '../CKEditorCustom.vue';
-import Pica from 'pica';
+
 export default {
   components: {
     CustomCKEditor
@@ -95,10 +95,10 @@ export default {
       gallery: [],
       galleryPreviews: [],
       galleryUrls: [],
-      galleryUploading: false,
-      uploadProgress: 0,
-      avatarUploading: false,
-      avatarUploadProgress: 0
+      galleryUploading: false, // Trạng thái tải lên của ảnh trong gallery,
+      uploadProgress: 0, // Phần trăm tiến độ tải lên
+      avatarUploading: false, // Trạng thái tải lên của avatar
+      avatarUploadProgress: 0 // Phần trăm tiến độ tải lên của avatar
     };
   },
   async created() {
@@ -111,21 +111,20 @@ export default {
     async onAvatarChange(event) {
       const file = event.target.files[0];
       if (this.validateImage(file)) {
-        const resizedFile = await this.resizeImage(file, 800, 800);
-
-        this.avatar = resizedFile;
-        this.avatarPreview = URL.createObjectURL(resizedFile);
+        this.avatar = file;
+        this.avatarPreview = URL.createObjectURL(file);
 
         this.avatarUploading = true;
         this.avatarUploadProgress = 0;
 
-        this.avatarUrl = await this.uploadImage(resizedFile, progress => {
+        this.avatarUrl = await this.uploadImage(file, progress => {
           this.avatarUploadProgress = progress;
         });
 
-        this.avatarUploading = false;
+        this.avatarUploading = false; // Hoàn tất tải ảnh đại diện
       } else {
-        alert("Chỉ chấp nhận ảnh JPEG, PNG, JPG, GIF dưới 20MB.");
+        alert("Only JPEG, PNG, JPG, GIF files under 20MB are allowed.");
+        return;
       }
     },
     async onGalleryChange(event) {
@@ -133,11 +132,11 @@ export default {
       const validFiles = newFiles.filter(file => this.validateImage(file));
 
       if (validFiles.length !== newFiles.length) {
-        alert("Một số file không hợp lệ. Chỉ chấp nhận ảnh JPEG, PNG, JPG, GIF dưới 20MB.");
+        alert("Some files are not valid. Only JPEG, PNG, JPG, GIF files under 20MB are allowed.");
         return;
       }
 
-      this.galleryUploading = true;
+      this.galleryUploading = true; // Bắt đầu tải ảnh lên
       this.uploadProgress = 0;
       const newPreviews = validFiles.map(file => URL.createObjectURL(file));
       this.gallery.push(...validFiles);
@@ -146,60 +145,40 @@ export default {
       const totalFiles = validFiles.length;
       let uploadedCount = 0;
 
+      // Tải lên từng ảnh một cách tuần tự với retry
       for (const file of validFiles) {
         let success = false;
         let retryCount = 0;
         const maxRetries = 3;
-        const resizedFile = await this.resizeImage(file, 800, 800);
+
         while (!success && retryCount < maxRetries) {
           try {
-            const url = await this.uploadImage(resizedFile);
+            const url = await this.uploadImage(file);
             if (url) {
               this.galleryUrls.push({ url });
               success = true;
             } else {
-              throw new Error("Upload trả về URL rỗng");
+              throw new Error("Upload returned an empty URL");
             }
           } catch (error) {
             retryCount += 1;
-            console.error(`Lỗi tải ảnh, thử lại (${retryCount}/${maxRetries}):`, error);
+            console.error(`Error uploading image, retrying (${retryCount}/${maxRetries}):`, error);
             if (retryCount === maxRetries) {
-              alert("Không thể tải ảnh sau nhiều lần thử. Vui lòng thử lại.");
+              alert("Failed to upload image after multiple attempts. Please try again.");
               setTimeout(() => {
-                  window.location.reload();
-              }, 1000);
+                window.location.reload();
+              }, 1000); // 1000 ms tương đương với 1 giây
             }
           }
         }
 
         if (success) {
           uploadedCount += 1;
-          this.uploadProgress = Math.round((uploadedCount / totalFiles) * 100);
+          this.uploadProgress = Math.round((uploadedCount / totalFiles) * 100); // Cập nhật tiến độ
         }
       }
 
-      this.galleryUploading = false;
-    },
-    async resizeImage(file, width, height) {
-      const pica = Pica();
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(file);
-
-      await new Promise(resolve => {
-        img.onload = resolve;
-      });
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-
-      await pica.resize(img, canvas);
-
-      return new Promise(resolve => {
-        canvas.toBlob(blob => {
-          resolve(new File([blob], file.name, { type: file.type }));
-        }, file.type);
-      });
+      this.galleryUploading = false; // Hoàn tất tải ảnh
     },
     validateImage(file) {
       const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
@@ -229,7 +208,7 @@ export default {
         });
         return response.data.url;
       } catch (error) {
-        console.error("Lỗi tải ảnh lên:", error);
+        console.error("Error uploading image:", error);
         return null;
       }
     },
@@ -250,7 +229,7 @@ export default {
           this.galleryPreviews = this.galleryUrls.map(gallery => gallery.url);
         }
       } catch (error) {
-        console.error("Lỗi tải sản phẩm:", error);
+        console.error("Error fetching product:", error);
       } finally {
         this.isLoading = false;
       }
@@ -272,7 +251,7 @@ export default {
         await request;
         this.$router.push('/products');
       } catch (error) {
-        console.error("Lỗi gửi form:", error);
+        console.error("Error submitting form:", error);
       } finally {
         this.isLoading = false;
       }
