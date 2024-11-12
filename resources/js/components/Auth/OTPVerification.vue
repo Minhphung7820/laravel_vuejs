@@ -11,6 +11,7 @@
       </button>
       <p v-if="countdown !== null" class="countdown">Time left: {{ formattedTime }}</p>
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      <p v-if="successfullMessage" class="successful-message">{{ successfullMessage }}</p>
     </form>
     <p @click="resendOTP" class="resend-link">Resend OTP</p>
   </div>
@@ -25,11 +26,24 @@ export default {
     return {
       otp: '',
       errorMessage: '',
+      successfullMessage: '',
       countdown: null,
       isExpired: false,
       expiredAt: null,
       countdownInterval: null, // Biến để lưu interval
     };
+  },
+  watch:{
+     errorMessage(newValue) {
+         if(newValue !== ''){
+             this.successfullMessage = '';
+         }
+     },
+     successfullMessage(newValue) {
+         if(newValue !== ''){
+             this.errorMessage = '';
+         }
+     }
   },
   computed: {
     formattedTime() {
@@ -70,6 +84,7 @@ export default {
         localStorage.setItem('otpExpiredAt', this.expiredAt.toISOString());
 
         this.startCountdown();
+        return response;
       } catch (error) {
         this.errorMessage = error.response.data.message;
       }
@@ -96,25 +111,34 @@ export default {
     },
     async verifyOTP() {
       try {
-        await this.$axios.post('/api/verify-otp', {
+       const verify = await this.$axios.post('/api/verify-otp', {
            email: this.$route.query.email,
            otp: this.otp ,
            user_id : this.$route.query.user_id
          });
         localStorage.removeItem('otpExpiredAt'); // Xóa expiredAt khi xác thực thành công
         clearInterval(this.countdownInterval); // Xóa interval khi xác thực thành công
-        this.$router.push('/'); // Điều hướng sau khi xác thực thành công
+        this.successfullMessage = verify.data.message;
+
+        setTimeout(() => {
+          this.$router.push('/login');
+        }, 2000);
       } catch (error) {
         this.errorMessage = error.response.data.message;
       }
     },
     async resendOTP() {
       this.errorMessage = '';
-      const email = this.$route.query.email;
-      const userId = this.$route.query.user_id;
-      if (email) {
+      if (
+        this.$route.query.email
+        &&
+        this.$route.query.user_id) {
         localStorage.removeItem('otpExpiredAt'); // Xóa expiredAt cũ
-        await this.sendOTP(email,userId); // Gửi lại OTP và khởi tạo countdown mới
+        const resend = await this.sendOTP(
+          this.$route.query.email,
+          this.$route.query.user_id
+        ); // Gửi lại OTP và khởi tạo countdown mới
+         this.successfullMessage = resend.data.message;
       }
     },
   },
@@ -191,6 +215,13 @@ input[type="text"] {
 
 .error-message {
   color: #e74c3c;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 15px;
+}
+
+.successful-message {
+  color: #27ae60;
   font-size: 14px;
   text-align: center;
   margin-top: 15px;

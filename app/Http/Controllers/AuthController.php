@@ -50,10 +50,25 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
+        $user = User::where('email', trim($request->email))
+            ->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Account does not exist.'
+            ], 404);
+        }
+
+        if (!$user->is_active) {
+            return response()->json([
+                'message' => 'Account is not activated.'
+            ], 403);
+        }
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'Invalid login credentials.'
+            ], 401);
         }
 
         $user = $request->user();
@@ -82,7 +97,7 @@ class AuthController extends Controller
     public function sendOtp(Request $request)
     {
         try {
-            DB::transaction(function () use ($request) {
+            return DB::transaction(function () use ($request) {
                 $expired_at = now()->addMinutes(10);
                 $otp = random_int(100000, 999999);
                 $email = trim($request['email']);
@@ -119,7 +134,7 @@ class AuthController extends Controller
                 ]));
 
                 return response()->json([
-                    'message' => 'OTP đã được gửi',
+                    'message' => 'OTP đã được gửi, vui lòng kiểm tra thư mail!',
                     'expired_at' => $expired_at->toDateTimeString(),
                 ]);
             });
@@ -133,9 +148,8 @@ class AuthController extends Controller
     public function verifyOtp(Request $request)
     {
         try {
-            DB::transaction(function () use ($request) {
+            return DB::transaction(function () use ($request) {
                 $otp = trim($request['otp']);
-                $email = trim($request['email']);
                 $user_id = (int)$request['user_id'];
 
                 $checkOTPValid = OTP::where('user_id', $user_id)
@@ -167,7 +181,7 @@ class AuthController extends Controller
 
                 if ($active) {
                     return response()->json([
-                        'message' => 'Xác thực thành công'
+                        'message' => 'Xác thực thành công, mời bận đăng nhập !'
                     ]);
 
                     $checkOTPValid->delete();
