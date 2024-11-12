@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OTP;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -75,5 +76,26 @@ class AuthController extends Controller
     {
         return  response()->json(auth()->guard('api')->user());
     }
+
+    public function sendOtp(Request $request)
+    {
+        $expired_at = now()->addMinutes(10);
+        $otp = random_int(100000, 999999);
+
+        OTP::updateOrCreate([
+            'email' => $request['email']
+        ], [
+            'expired_at' => $expired_at,
+            'email' => $request['email'],
+            'otp' => $otp
+        ]);
+
+        return response()->json([
+            'message' => 'OTP đã được gửi',
+            'expired_at' => $expired_at->toDateTimeString(),
+        ]);
+    }
+
+    public function verifyOtp(Request $request) {}
 }
 /////

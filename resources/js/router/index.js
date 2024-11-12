@@ -8,6 +8,7 @@ import NotFound from '../components/NotFound.vue';
 import Login from '../components/Auth/Login.vue';
 import Register from '../components/Auth/Register.vue';
 import Profile from '../components/Auth/Profile.vue';
+import OTPVerification from '../components/Auth/OTPVerification.vue';
 // prefix
 const prefixRouteProduct = 'products';
 //
@@ -17,6 +18,7 @@ const routes = [
   { path: '/register', component: Register },
   { path: '/about', component: About },
   { path: '/get-profile', component: Profile, meta: { requiresAuth: true } },
+  { path: '/otp-verification', name: 'OTPVerification', component: OTPVerification, props: true },
   { path: `/${prefixRouteProduct}`, component: ProductList, meta: { requiresAuth: true } },
   { path: `/${prefixRouteProduct}/create`, component: ProductForm, meta: { requiresAuth: true } },
   { path: `/${prefixRouteProduct}/:id`, component: ProductDetail, meta: { requiresAuth: true } },

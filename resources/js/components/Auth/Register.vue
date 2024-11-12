@@ -39,13 +39,13 @@ export default {
   methods: {
     async register() {
       try {
-        await this.$axios.post('/api/register', {
+        const response = await this.$axios.post('/api/register', {
           name: this.name,
           email: this.email,
           password: this.password,
           password_confirmation: this.passwordConfirmation,
         });
-        this.$router.push('/login');
+        this.$router.push({ name: 'OTPVerification', query: { email: this.email } });
       } catch (error) {
         this.errorMessage = error.response.data.message;
       }
