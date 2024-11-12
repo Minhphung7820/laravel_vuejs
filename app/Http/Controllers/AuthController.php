@@ -50,8 +50,7 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', trim($request->email))
-            ->first();
+        $user = User::where('email', trim($request->email))->first();
 
         if (!$user) {
             return response()->json([
@@ -71,7 +70,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = $request->user();
+        // Tạo token truy cập cho người dùng
         $token = $user->createToken('authToken')->accessToken;
 
         return response()->json([
