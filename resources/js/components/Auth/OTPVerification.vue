@@ -35,8 +35,11 @@ export default {
   },
   computed: {
     formattedTime() {
+      if (this.countdown <= 0) {
+        return "00:00";
+      }
       const minutes = Math.floor(this.countdown / 60);
-      const seconds = Math.floor(this.countdown % 60); // Làm tròn số giây xuống
+      const seconds = Math.floor(this.countdown % 60);
       return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     },
   },
