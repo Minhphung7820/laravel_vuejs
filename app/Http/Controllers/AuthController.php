@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\OTPVerificationJob;
 use App\Models\OTP;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -79,23 +81,102 @@ class AuthController extends Controller
 
     public function sendOtp(Request $request)
     {
-        $expired_at = now()->addMinutes(10);
-        $otp = random_int(100000, 999999);
+        try {
+            DB::transaction(function () use ($request) {
+                $expired_at = now()->addMinutes(10);
+                $otp = random_int(100000, 999999);
+                $email = trim($request['email']);
+                $user_id = (int)$request['user_id'];
 
-        OTP::updateOrCreate([
-            'email' => $request['email']
-        ], [
-            'expired_at' => $expired_at,
-            'email' => $request['email'],
-            'otp' => $otp
-        ]);
+                $checkExists = User::where('id', $user_id)
+                    ->first();
 
-        return response()->json([
-            'message' => 'OTP đã được gửi',
-            'expired_at' => $expired_at->toDateTimeString(),
-        ]);
+                if (!$checkExists) {
+                    return response()->json([
+                        'message' => 'Tài khoản không tồn tại !'
+                    ], 500);
+                }
+
+                if ($checkExists->is_active == 1) {
+                    return response()->json([
+                        'message' => 'Tài khoản đã được kích hoạt rồi!'
+                    ], 500);
+                }
+
+                OTP::updateOrCreate([
+                    'email' => $email,
+                    'user_id' => $user_id
+                ], [
+                    'user_id' => $user_id,
+                    'expired_at' => $expired_at,
+                    'email' => $email,
+                    'otp' => $otp
+                ]);
+
+                dispatch(new OTPVerificationJob($email, [
+                    'email' => $email,
+                    'otp' => $otp
+                ]));
+
+                return response()->json([
+                    'message' => 'OTP đã được gửi',
+                    'expired_at' => $expired_at->toDateTimeString(),
+                ]);
+            });
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function verifyOtp(Request $request) {}
+    public function verifyOtp(Request $request)
+    {
+        try {
+            DB::transaction(function () use ($request) {
+                $otp = trim($request['otp']);
+                $email = trim($request['email']);
+                $user_id = (int)$request['user_id'];
+
+                $checkOTPValid = OTP::where('user_id', $user_id)
+                    ->where('otp', $otp)
+                    ->first();
+
+                if (!$checkOTPValid) {
+                    return response()->json([
+                        'message' => 'Mã OTP Không đúng !'
+                    ], 500);
+                }
+
+                if (now() > Carbon::parse($checkOTPValid->expired_at)) {
+                    return response()->json([
+                        'message' => 'Mã OTP hết hạn !'
+                    ], 500);
+                }
+
+                $checkExists = User::where('id', $user_id)
+                    ->first();
+
+                if (! $checkExists) {
+                    return response()->json([
+                        'message' => 'Người dùng không tồn tại !'
+                    ], 500);
+                }
+
+                $active = User::where('id', $user_id)->update(['is_active' => 1]);
+
+                if ($active) {
+                    return response()->json([
+                        'message' => 'Xác thực thành công'
+                    ]);
+
+                    $checkOTPValid->delete();
+                }
+            });
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
-/////

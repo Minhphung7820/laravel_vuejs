@@ -34,6 +34,7 @@ export default {
       password: '',
       passwordConfirmation: '',
       errorMessage: '',
+      userId: null
     };
   },
   methods: {
@@ -45,7 +46,8 @@ export default {
           password: this.password,
           password_confirmation: this.passwordConfirmation,
         });
-        this.$router.push({ name: 'OTPVerification', query: { email: this.email } });
+        this.userId = response.data.user.id;
+        this.$router.push({ name: 'OTPVerification', query: { email: this.email, user_id : this.userId } });
       } catch (error) {
         this.errorMessage = error.response.data.message;
       }

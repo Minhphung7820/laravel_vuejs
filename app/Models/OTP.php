@@ -16,5 +16,6 @@ class OTP extends Model
     'expired_at',
     'created_at',
     'updated_at',
+    'user_id'
   ];
 }

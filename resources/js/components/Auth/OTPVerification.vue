@@ -43,16 +43,17 @@ export default {
   },
   mounted() {
     const email = this.$route.query.email;
-    if (email) {
+    const userId = this.$route.query.user_id;
+    if (email && userId) {
       const storedExpiredAt = localStorage.getItem('otpExpiredAt');
       if (storedExpiredAt && moment(storedExpiredAt).isAfter(moment())) {
         this.expiredAt = moment(storedExpiredAt);
         this.startCountdown();
       } else {
-        this.sendOTP(email);
+        this.sendOTP(email,userId);
       }
     } else {
-      this.errorMessage = "Email không hợp lệ.";
+      this.errorMessage = "URL không hợp lệ";
     }
   },
   beforeDestroy() {
@@ -60,9 +61,9 @@ export default {
     clearInterval(this.countdownInterval);
   },
   methods: {
-    async sendOTP(email) {
+    async sendOTP(email,userId) {
       try {
-        const response = await this.$axios.post('/api/send-otp', { email });
+        const response = await this.$axios.post('/api/send-otp', { email ,user_id : userId });
         this.expiredAt = moment(response.data.expired_at);
 
         // Lưu expiredAt vào localStorage
@@ -95,7 +96,11 @@ export default {
     },
     async verifyOTP() {
       try {
-        await this.$axios.post('/api/verify-otp', { email: this.$route.query.email, otp: this.otp });
+        await this.$axios.post('/api/verify-otp', {
+           email: this.$route.query.email,
+           otp: this.otp ,
+           user_id : this.$route.query.user_id
+         });
         localStorage.removeItem('otpExpiredAt'); // Xóa expiredAt khi xác thực thành công
         clearInterval(this.countdownInterval); // Xóa interval khi xác thực thành công
         this.$router.push('/'); // Điều hướng sau khi xác thực thành công
@@ -106,9 +111,10 @@ export default {
     async resendOTP() {
       this.errorMessage = '';
       const email = this.$route.query.email;
+      const userId = this.$route.query.user_id;
       if (email) {
         localStorage.removeItem('otpExpiredAt'); // Xóa expiredAt cũ
-        await this.sendOTP(email); // Gửi lại OTP và khởi tạo countdown mới
+        await this.sendOTP(email,userId); // Gửi lại OTP và khởi tạo countdown mới
       }
     },
   },
