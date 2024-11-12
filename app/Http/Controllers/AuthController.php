@@ -70,7 +70,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // Tạo token truy cập cho người dùng
+        // Create access token for the user
         $token = $user->createToken('authToken')->accessToken;
 
         return response()->json([
@@ -90,7 +90,7 @@ class AuthController extends Controller
 
     public function getProfile(Request $request)
     {
-        return  response()->json(auth()->guard('api')->user());
+        return response()->json(auth()->guard('api')->user());
     }
 
     public function sendOtp(Request $request)
@@ -107,13 +107,13 @@ class AuthController extends Controller
 
                 if (!$checkExists) {
                     return response()->json([
-                        'message' => 'Tài khoản không tồn tại !'
+                        'message' => 'Account does not exist!'
                     ], 500);
                 }
 
                 if ($checkExists->is_active == 1) {
                     return response()->json([
-                        'message' => 'Tài khoản đã được kích hoạt rồi!'
+                        'message' => 'Account is already activated!'
                     ], 500);
                 }
 
@@ -133,7 +133,7 @@ class AuthController extends Controller
                 ]));
 
                 return response()->json([
-                    'message' => 'OTP đã được gửi, vui lòng kiểm tra thư mail!',
+                    'message' => 'OTP has been sent, please check your email!',
                     'expired_at' => $expired_at->toDateTimeString(),
                 ]);
             });
@@ -157,33 +157,33 @@ class AuthController extends Controller
 
                 if (!$checkOTPValid) {
                     return response()->json([
-                        'message' => 'Mã OTP Không đúng !'
+                        'message' => 'Invalid OTP code!'
                     ], 500);
                 }
 
                 if (now() > Carbon::parse($checkOTPValid->expired_at)) {
                     return response()->json([
-                        'message' => 'Mã OTP hết hạn !'
+                        'message' => 'OTP code has expired!'
                     ], 500);
                 }
 
                 $checkExists = User::where('id', $user_id)
                     ->first();
 
-                if (! $checkExists) {
+                if (!$checkExists) {
                     return response()->json([
-                        'message' => 'Người dùng không tồn tại !'
+                        'message' => 'User does not exist!'
                     ], 500);
                 }
 
                 $active = User::where('id', $user_id)->update(['is_active' => 1]);
 
                 if ($active) {
-                    return response()->json([
-                        'message' => 'Xác thực thành công, mời bận đăng nhập !'
-                    ]);
-
                     $checkOTPValid->delete();
+
+                    return response()->json([
+                        'message' => 'Verification successful, please log in!'
+                    ]);
                 }
             });
         } catch (\Exception $e) {
