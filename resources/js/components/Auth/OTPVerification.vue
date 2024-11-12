@@ -1,6 +1,5 @@
 <template>
   <div class="otp-container">
-    <h2>OTP Verification</h2>
     <p>Please enter the OTP sent to your email.</p>
     <form @submit.prevent="verifyOTP" class="otp-form">
       <div class="form-group">
