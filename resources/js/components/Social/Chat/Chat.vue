@@ -29,14 +29,6 @@ export default {
       newMessage: ''
     };
   },
-  beforeDestroy(){
-     Echo.join(`room.1`)
-        .leaving((user) => {
-        // Xóa người dùng khỏi danh sách khi có người rời đi
-        this.usersOnline = this.usersOnline.filter(u => u.id !== user.id);
-        console.log('Danh sách người dùng sau khi xóa (leaving):', this.usersOnline);
-      })
-  },
   mounted() {
     // Tham gia vào kênh room.1 và cập nhật danh sách người dùng
     Echo.join(`room.1`)
