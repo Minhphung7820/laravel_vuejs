@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
-import axios from 'axios';
+import './bootstrap';
 import '../css/global.css';
 import { CkeditorPlugin } from '@ckeditor/ckeditor5-vue';
 

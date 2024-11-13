@@ -5,6 +5,7 @@
             <router-link to="/">Home</router-link>
             <router-link to="/about">About</router-link>
             <router-link to="/products">Product</router-link>
+            <router-link v-if="isAuthenticated" to="/social-chat">Chat</router-link>
             <router-link v-if="isAuthenticated" to="/get-profile">Get Profile</router-link>
             <router-link v-else to="/login">Login</router-link>
         </nav>

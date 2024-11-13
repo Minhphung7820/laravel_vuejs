@@ -3,8 +3,10 @@
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\FileUploadController;
-
+// routes/api.php
+Route::post('/send-message', [ChatController::class, 'sendMessage']);
 Route::post('/upload-image', [FileUploadController::class, 'uploadImage'])->name('upload.image');
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);

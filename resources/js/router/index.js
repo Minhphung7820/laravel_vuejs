@@ -9,6 +9,7 @@ import Login from '../components/Auth/Login.vue';
 import Register from '../components/Auth/Register.vue';
 import Profile from '../components/Auth/Profile.vue';
 import OTPVerification from '../components/Auth/OTPVerification.vue';
+import Chat from '../components/Social/Chat/Chat.vue';
 // prefix
 const prefixRouteProduct = 'products';
 //
@@ -18,6 +19,7 @@ const routes = [
   { path: '/register', component: Register },
   { path: '/about', component: About },
   { path: '/get-profile', component: Profile, meta: { requiresAuth: true } },
+  { path: '/social-chat', component: Chat, meta: { requiresAuth: true } },
   { path: '/otp-verification', name: 'OTPVerification', component: OTPVerification, props: true },
   { path: `/${prefixRouteProduct}`, component: ProductList, meta: { requiresAuth: true } },
   { path: `/${prefixRouteProduct}/create`, component: ProductForm, meta: { requiresAuth: true } },
