@@ -5,7 +5,7 @@
       <h3>Người dùng đang online:</h3>
       <ul>
         <li v-for="user in usersOnline" :key="user.id">
-          {{ user.name }}
+          <strong>{{ user.name }}</strong>
         </li>
       </ul>
     </div>
@@ -51,6 +51,7 @@ export default {
   },
   async mounted() {
     await this.getProfile();
+    await this.getFriend();
     await this.getMessage();
     this.joinChannel();
   },
@@ -58,6 +59,15 @@ export default {
     this.leaveChannel();
   },
   methods: {
+    async getFriend()
+    {
+      try {
+        const getFriend = await this.$axios.get('/api/get-friend');
+        this.usersOnline = getFriend.data;
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    },
     async getMessage(){
       try {
         const getMessage = await this.$axios.get('/api/get-message');
@@ -77,7 +87,7 @@ export default {
     joinChannel() {
       Echo.join(`room.1`)
         .here((onlineUsers) => {
-          this.usersOnline = onlineUsers;
+          // this.usersOnline = onlineUsers;
         })
         .joining((user) => {
           this.usersOnline.push(user);
