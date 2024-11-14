@@ -1,16 +1,19 @@
 <template>
   <div class="chat-container">
-    <!-- Sidebar for online users -->
+    <!-- Sidebar cho người dùng online -->
     <div class="users-online">
-      <h3>Người dùng đang online:</h3>
+      <h3>Người dùng:</h3>
       <ul>
-        <li v-for="user in usersOnline" :key="user.id">
+        <li v-for="user in users" :key="user.id">
           <strong>{{ user.name }}</strong>
+          <span :class="{'online': user.online, 'offline': !user.online}">
+            {{ user.online ? 'Đang online' : 'Offline' }}
+          </span>
         </li>
       </ul>
     </div>
 
-    <!-- Chat box -->
+    <!-- Khung chat -->
     <div class="chat-box">
       <h3>Tin nhắn:</h3>
       <div class="messages" ref="messagesContainer">
@@ -24,12 +27,12 @@
         </small>
       </div>
 
-      <!-- Message input box -->
+      <!-- Khung nhập tin nhắn -->
       <input
         v-model="newMessage"
         @keydown="sendTypingEvent"
         @keyup.enter="sendMessage"
-        placeholder="Enter your message"
+        placeholder="Nhập tin nhắn của bạn"
         class="message-input"
       />
     </div>
@@ -41,7 +44,7 @@ export default {
   inject: ['$axios'],
   data() {
     return {
-      usersOnline: [],
+      users: [], // Danh sách người dùng với trạng thái online/offline
       messages: [],
       newMessage: '',
       userCurrent: null,
@@ -59,16 +62,18 @@ export default {
     this.leaveChannel();
   },
   methods: {
-    async getFriend()
-    {
+    async getFriend() {
       try {
         const getFriend = await this.$axios.get('/api/get-friend');
-        this.usersOnline = getFriend.data;
+        this.users = getFriend.data.map(user => ({
+          ...user,
+          online: false // Khởi tạo tất cả người dùng là offline
+        }));
       } catch (error) {
         console.error("Error:", error);
       }
     },
-    async getMessage(){
+    async getMessage() {
       try {
         const getMessage = await this.$axios.get('/api/get-message');
         this.messages = getMessage.data;
@@ -87,13 +92,23 @@ export default {
     joinChannel() {
       Echo.join(`room.1`)
         .here((onlineUsers) => {
-          // this.usersOnline = onlineUsers;
+          // Đánh dấu người dùng online từ danh sách ban đầu
+          this.users.forEach(user => {
+            user.online = onlineUsers.some(onlineUser => onlineUser.id === user.id);
+          });
+          this.sortUsers(); // Sắp xếp lại danh sách người dùng
         })
         .joining((user) => {
-          this.usersOnline.push(user);
+          // Đánh dấu trạng thái online khi có người mới tham gia
+          const targetUser = this.users.find(u => u.id === user.id);
+          if (targetUser) targetUser.online = true;
+          this.sortUsers(); // Sắp xếp lại danh sách người dùng
         })
         .leaving((user) => {
-          this.usersOnline = this.usersOnline.filter(u => u.id !== user.id);
+          // Đánh dấu trạng thái offline khi có người rời khỏi
+          const targetUser = this.users.find(u => u.id === user.id);
+          if (targetUser) targetUser.online = false;
+          this.sortUsers(); // Sắp xếp lại danh sách người dùng
         })
         .error((error) => {
           console.error('Lỗi kết nối:', error);
@@ -119,6 +134,10 @@ export default {
           }, 1000);
         });
     },
+    sortUsers() {
+      // Sắp xếp danh sách để người online ở đầu
+      this.users.sort((a, b) => b.online - a.online);
+    },
     sendTypingEvent() {
       Echo.join(`room.1`)
         .whisper("typing", {
@@ -141,7 +160,7 @@ export default {
         const container = this.$refs.messagesContainer;
         container.scrollTo({
           top: container.scrollHeight,
-          behavior: 'smooth' // This enables smooth scrolling
+          behavior: 'smooth'
         });
       });
     }
@@ -164,6 +183,26 @@ export default {
   overflow-y: auto;
 }
 
+.users-online ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.users-online li {
+  margin-bottom: 8px;
+}
+
+.online {
+  color: green;
+  font-weight: bold;
+  margin-left:10px ;
+}
+
+.offline {
+  color: gray;
+  margin-left:10px ;
+}
+
 .chat-box {
   flex: 1;
   display: flex;
@@ -173,7 +212,7 @@ export default {
 .messages {
   flex: 1;
   overflow-y: auto;
-  max-height: 400px; /* Set max-height to keep it fixed and allow scrolling */
+  max-height: 400px;
   border: 1px solid #ccc;
   padding: 15px;
   margin-bottom: 10px;
