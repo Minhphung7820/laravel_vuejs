@@ -106,7 +106,7 @@ export default {
         const getFriend = await this.$axios.get('/api/get-friend');
         this.users = getFriend.data.map(user => ({
           ...user,
-          online: false // Khởi tạo tất cả người dùng là offline
+          online: this.users.find(u => u.id === user.id)?.online || false // Giữ trạng thái online từ trước nếu có
         }));
       } catch (error) {
         console.error("Error:", error);
@@ -138,15 +138,18 @@ export default {
     joinChannel() {
       Echo.join(`room.1`)
         .here((onlineUsers) => {
+          // Đặt trạng thái online cho người dùng có mặt trong kênh khi trang được tải
           this.users.forEach(user => {
             user.online = onlineUsers.some(onlineUser => onlineUser.id === user.id);
           });
         })
         .joining((user) => {
+          // Khi có người dùng mới tham gia kênh, đặt trạng thái online cho họ
           const targetUser = this.users.find(u => u.id === user.id);
           if (targetUser) targetUser.online = true;
         })
         .leaving((user) => {
+          // Chỉ đặt trạng thái offline khi người dùng rời khỏi kênh
           const targetUser = this.users.find(u => u.id === user.id);
           if (targetUser) {
             targetUser.online = false;
