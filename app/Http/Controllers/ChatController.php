@@ -4,17 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
+use App\Models\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ChatController extends Controller
 {
+    public function getMessage(Request $request)
+    {
+        return Message::with('user')->oldest()->get();
+    }
+
     public function sendMessage(Request $request)
     {
-        $user = auth()->guard('api')->user();
-        $message = $request->message;
+        try {
+            return DB::transaction(function () use ($request) {
+                $user = auth()->guard('api')->user();
+                $message = $request->message;
 
-        broadcast(new MessageSent($user, $message));
+                Message::create([
+                    'message' => $message,
+                    'user_id' => $user->id,
+                    'conversation_id' => null
+                ]);
+                broadcast(new MessageSent($user, $message));
 
-        return response()->json(['status' => 'Message Sent!']);
+                return response()->json(['status' => 'Message Sent!']);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 }
