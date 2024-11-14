@@ -13,57 +13,95 @@
         {{ msg.user }}: {{ msg.message }}
       </li>
     </ul>
-
-    <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Enter your message" />
+     <small v-if="isFriendTyping" class="text-gray-700">
+            Someone is typing...
+     </small>
+     <br>
+    <input v-model="newMessage" @keydown="sendTypingEvent" @keyup.enter="sendMessage" placeholder="Enter your message" />
   </div>
 </template>
 
 <script>
-import axios from 'axios';
-
 export default {
+  inject: ['$axios'],
   data() {
     return {
       usersOnline: [], // Mảng để lưu danh sách người dùng đang online
       messages: [],
-      newMessage: ''
+      newMessage: '',
+      userCurrent : null,
+      isFriendTyping : false,
+      isFriendTypingTimer : null
     };
   },
-  mounted() {
-    // Tham gia vào kênh room.1 và cập nhật danh sách người dùng
-    Echo.join(`room.1`)
-      .here((onlineUsers) => {
-        // Cập nhật danh sách người dùng hiện tại khi vào kênh
-        this.usersOnline = onlineUsers;
-        console.log('Danh sách người dùng hiện tại (here):', this.usersOnline);
-      })
-      .joining((user) => {
-        // Thêm người dùng vào danh sách khi có người tham gia
-        this.usersOnline.push(user);
-        console.log('Danh sách người dùng sau khi thêm (joining):', this.usersOnline);
-      })
-      .leaving((user) => {
-        // Xóa người dùng khỏi danh sách khi có người rời đi
-        this.usersOnline = this.usersOnline.filter(u => u.id !== user.id);
-        console.log('Danh sách người dùng sau khi xóa (leaving):', this.usersOnline);
-      })
-      .error((error) => {
-        console.error('Lỗi kết nối:', error);
-      });
-
-    // Nghe sự kiện MessageSent trong kênh chat
-    Echo.channel('chat')
-      .listen('MessageSent', (e) => {
-        this.messages.push({
-          user: e.user?.name,
-          message: e.message
-        });
-      });
+  async mounted() {
+    await this.getProfile()
+    this.joinChannel();
+  },
+  beforeUnmount() {
+    this.leaveChannel();
   },
   methods: {
+   async getProfile()
+      {
+          try{
+           const userProfile =  await this.$axios.get('/api/get-profile');
+           this.userCurrent = userProfile;
+          } catch (error) {
+              console.error("Error:", error);
+          }
+      },
+    joinChannel() {
+      // Tham gia vào kênh room.1 và cập nhật danh sách người dùng
+      Echo.join(`room.1`)
+        .here((onlineUsers) => {
+          this.usersOnline = onlineUsers;
+          console.log('Danh sách người dùng hiện tại (here):', this.usersOnline);
+        })
+        .joining((user) => {
+          this.usersOnline.push(user);
+          console.log('Danh sách người dùng sau khi thêm (joining):', this.usersOnline);
+        })
+        .leaving((user) => {
+          this.usersOnline = this.usersOnline.filter(u => u.id !== user.id);
+          console.log('Danh sách người dùng sau khi xóa (leaving):', this.usersOnline);
+        })
+        .error((error) => {
+          console.error('Lỗi kết nối:', error);
+        });
+
+      // Nghe sự kiện MessageSent trong kênh chat
+      Echo.channel('chat')
+        .listen('MessageSent', (e) => {
+          this.messages.push({
+            user: e.user.name,
+            message: e.message
+          });
+      });
+      Echo.join(`room.1`)
+         .listenForWhisper("typing", (e) => {
+            this.isFriendTyping = e.userID !== this.userCurrent.data.id;
+            if (this.isFriendTypingTimer) {
+                clearTimeout(this.isFriendTypingTimer);
+            }
+            this.isFriendTypingTimer = setTimeout(() => {
+                this.isFriendTyping = false;
+            }, 1000);
+        });
+
+    },
+    sendTypingEvent(){
+      Echo.join(`room.1`)
+         .whisper("typing", {
+          userID: this.userCurrent.data.id,
+      });
+    },
+    leaveChannel() {
+      Echo.leave(`room.1`);
+    },
     async sendMessage() {
       try {
-        const response = await axios.post('/api/send-message', { message: this.newMessage });
+        await this.$axios.post('/api/send-message', { message: this.newMessage });
         this.newMessage = '';
       } catch (error) {
         console.error("Error:", error);
