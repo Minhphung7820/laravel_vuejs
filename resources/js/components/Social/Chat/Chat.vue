@@ -52,6 +52,7 @@ export default {
       userCurrent: null,
       isFriendTyping: false,
       isFriendTypingTimer: null,
+      lastOnlineInterval: null // Khởi tạo biến lưu trữ interval
     };
   },
   async mounted() {
@@ -59,8 +60,25 @@ export default {
     await this.getFriend();
     await this.getMessage();
     this.joinChannel();
+      // Tính thời gian chờ cho đến phút chẵn tiếp theo
+    const now = new Date();
+    const delay = (60 - now.getSeconds()) * 1000; // Thời gian chờ đến phút chẵn
+
+    // Chờ đến phút chẵn đầu tiên
+    setTimeout(() => {
+      this.getFriend(); // Cập nhật lần đầu vào phút chẵn
+
+      // Sau đó bắt đầu cập nhật mỗi phút
+      this.lastOnlineInterval = setInterval(() => {
+        this.getFriend();
+      }, 60000); // 1 phút
+
+    }, delay);
   },
   async beforeUnmount() {
+    if (this.lastOnlineInterval) {
+      clearInterval(this.lastOnlineInterval);
+    }
     await this.setLasttime();
     this.leaveChannel();
   },
