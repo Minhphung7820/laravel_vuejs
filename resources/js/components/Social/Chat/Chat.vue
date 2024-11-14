@@ -120,20 +120,19 @@ export default {
     joinChannel() {
       Echo.join(`room.1`)
         .here((onlineUsers) => {
-          // Đánh dấu người dùng online từ danh sách ban đầu
           this.users.forEach(user => {
             user.online = onlineUsers.some(onlineUser => onlineUser.id === user.id);
           });
         })
         .joining((user) => {
-          // Đánh dấu trạng thái online khi có người mới tham gia
           const targetUser = this.users.find(u => u.id === user.id);
           if (targetUser) targetUser.online = true;
         })
         .leaving((user) => {
-          // Đánh dấu trạng thái offline khi có người rời khỏi
           const targetUser = this.users.find(u => u.id === user.id);
-          if (targetUser) targetUser.online = false;
+          if (targetUser) {
+            targetUser.online = false;
+          }
         })
         .error((error) => {
           console.error('Lỗi kết nối:', error);
