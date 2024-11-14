@@ -189,11 +189,11 @@ export default {
         });
       });
     },
-  getLastTimeAgo(dateString) {
-    const date = new Date(dateString);
-    const timeAgo = formatDistanceToNow(date, { addSuffix: true }) === 'less than a minute ago' ? 'just now' :formatDistanceToNow(date, { addSuffix: true }) ;
-    return `Online ${timeAgo}`;
-}
+    getLastTimeAgo(dateString) {
+      const date = new Date(dateString);
+      const timeAgo = formatDistanceToNow(date, { addSuffix: true }) === 'less than a minute ago' ? 'just now' :formatDistanceToNow(date, { addSuffix: true }) ;
+      return `Online ${timeAgo}`;
+    }
   }
 };
 </script>
