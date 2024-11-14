@@ -61,6 +61,14 @@ export default {
   beforeUnmount() {
     this.leaveChannel();
   },
+  watch: {
+    users: {
+      handler() {
+        this.sortUsers(); // Gọi hàm sắp xếp khi users thay đổi
+      },
+      deep: true // Cần có để theo dõi thay đổi bên trong từng phần tử của mảng
+    }
+  },
   methods: {
     async getFriend() {
       try {
@@ -96,19 +104,16 @@ export default {
           this.users.forEach(user => {
             user.online = onlineUsers.some(onlineUser => onlineUser.id === user.id);
           });
-          this.sortUsers(); // Sắp xếp lại danh sách người dùng
         })
         .joining((user) => {
           // Đánh dấu trạng thái online khi có người mới tham gia
           const targetUser = this.users.find(u => u.id === user.id);
           if (targetUser) targetUser.online = true;
-          this.sortUsers(); // Sắp xếp lại danh sách người dùng
         })
         .leaving((user) => {
           // Đánh dấu trạng thái offline khi có người rời khỏi
           const targetUser = this.users.find(u => u.id === user.id);
           if (targetUser) targetUser.online = false;
-          this.sortUsers(); // Sắp xếp lại danh sách người dùng
         })
         .error((error) => {
           console.error('Lỗi kết nối:', error);
