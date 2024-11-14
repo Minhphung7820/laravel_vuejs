@@ -129,7 +129,10 @@ export default {
     scrollToBottom() {
       this.$nextTick(() => {
         const container = this.$refs.messagesContainer;
-        container.scrollTop = container.scrollHeight;
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth' // This enables smooth scrolling
+        });
       });
     }
   }
@@ -160,11 +163,12 @@ export default {
 .messages {
   flex: 1;
   overflow-y: auto;
-  height: 400px;
+  max-height: 400px; /* Set max-height to keep it fixed and allow scrolling */
   border: 1px solid #ccc;
   padding: 15px;
   margin-bottom: 10px;
   border-radius: 8px;
+  background-color: #f9f9f9;
 }
 
 .message-input {
