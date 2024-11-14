@@ -4,10 +4,10 @@
     <div class="users-online">
       <h3>Người dùng:</h3>
       <ul>
-        <li v-for="user in users" :key="user.id">
+        <li v-for="user in formattedUser" :key="user.id">
           <strong>{{ user.name }}</strong>
           <span :class="{'online': user.online, 'offline': !user.online}">
-            {{ user.online ? 'Đang online' : 'Offline' }}
+            {{ user.online ? 'Đang online' : user.lastimeOnlineString }}
           </span>
         </li>
       </ul>
@@ -40,6 +40,8 @@
 </template>
 
 <script>
+import { formatDistanceToNow } from 'date-fns';
+
 export default {
   inject: ['$axios'],
   data() {
@@ -58,16 +60,27 @@ export default {
     await this.getMessage();
     this.joinChannel();
   },
-  beforeUnmount() {
+  async beforeUnmount() {
+    await this.setLasttime();
     this.leaveChannel();
   },
   watch: {
     users: {
       handler() {
-        this.sortUsers(); // Gọi hàm sắp xếp khi users thay đổi
+        this.sortUsers();
       },
-      deep: true // Cần có để theo dõi thay đổi bên trong từng phần tử của mảng
+      deep: true
     }
+  },
+  computed:{
+    formattedUser() {
+        // Định dạng sản phẩm với giá thành
+        const formattedUser = this.users.map(user => ({
+          ...user,
+          lastimeOnlineString: this.getLastTimeAgo(user.last_online)
+        }));
+        return formattedUser;
+    },
   },
   methods: {
     async getFriend() {
@@ -77,6 +90,13 @@ export default {
           ...user,
           online: false // Khởi tạo tất cả người dùng là offline
         }));
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    },
+    async setLasttime() {
+      try {
+        await this.$axios.post('/api/set-last-time');
       } catch (error) {
         console.error("Error:", error);
       }
@@ -168,7 +188,12 @@ export default {
           behavior: 'smooth'
         });
       });
-    }
+    },
+  getLastTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const timeAgo = formatDistanceToNow(date, { addSuffix: true }) === 'less than a minute ago' ? 'just now' :formatDistanceToNow(date, { addSuffix: true }) ;
+    return `Online ${timeAgo}`;
+}
   }
 };
 </script>

@@ -21,6 +21,21 @@ class ChatController extends Controller
         return Message::with('user')->oldest()->get();
     }
 
+    public function setLastTime(Request $request)
+    {
+        try {
+            return DB::transaction(function () use ($request) {
+                DB::table('users')
+                    ->where('id', auth()->guard('api')->id())
+                    ->update(['last_online' => now()->format('Y-m-d H:i:s')]);
+
+                return response()->json(true);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
     public function sendMessage(Request $request)
     {
         try {

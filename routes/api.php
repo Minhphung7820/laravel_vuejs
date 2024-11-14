@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\FileUploadController;
 // routes/api.php
+Route::post('/set-last-time', [ChatController::class, 'setLastTime'])->middleware('auth:api');
 Route::get('/get-friend', [ChatController::class, 'getFriend'])->middleware('auth:api');
 Route::get('/get-message', [ChatController::class, 'getMessage'])->middleware('auth:api');
 Route::post('/send-message', [ChatController::class, 'sendMessage'])->middleware('auth:api');
